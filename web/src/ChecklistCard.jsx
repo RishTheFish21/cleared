@@ -36,7 +36,7 @@ export default function ChecklistCard({ checklist, brief }) {
                 <div>{r.description}</div>
                 <div className="req-kind">
                   {KIND_LABEL[r.kind] ?? r.kind} · {r.source === 'video' ? 'checked by watching the video' : 'checked from YouTube data'}
-                  {r.quote_from_brief ? ` · “${r.quote_from_brief}”` : ''}
+                  {r.quote_from_brief ? ` · "${r.quote_from_brief}"` : ''}
                 </div>
               </div>
               <div>{r.added_by === 'policy' ? <span className="tag tag-ftc">FTC rule</span> : <span className="tag">brief</span>}</div>

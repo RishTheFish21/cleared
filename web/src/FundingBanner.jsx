@@ -49,7 +49,7 @@ export default function FundingBanner({ campaign, onChange }) {
   };
 
   return (
-    <div className="card funding">
+    <div className="funding" role="region" aria-label="Funding">
       <div style={{ flex: 1, minWidth: 0 }}>
         {open ? (
           <>

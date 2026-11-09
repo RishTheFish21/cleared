@@ -3,20 +3,20 @@ import { Link } from 'react-router-dom';
 // One place that defines how each status looks and reads.
 // tone -> .mark-<tone> in styles.css; color -> the timeline bar.
 export const STATUS = {
-  due: { label: 'Due', tone: 'due', color: '#a29e93' },
-  submitted: { label: 'Queued', tone: 'busy', color: '#44423c' },
-  verifying: { label: 'Checking', tone: 'busy', color: '#44423c' },
-  fix_needed: { label: 'Fix needed', tone: 'held', color: '#9a5800' },
-  human_review: { label: 'Review', tone: 'held', color: '#c08a2c' },
-  verified: { label: 'Cleared', tone: 'cleared', color: '#3c8a60' },
-  paying: { label: 'Paying', tone: 'cleared', color: '#3c8a60' },
-  paid: { label: 'Paid', tone: 'paid', color: '#1d6b44' },
-  payout_failed: { label: 'Failed', tone: 'failed', color: '#a8321f' },
-  checking: { label: 'Checking', tone: 'busy' }, // legend swatch without the spinner
+  due: { label: 'Due', tone: 'grey', color: '#ffffff' },
+  submitted: { label: 'Queued', tone: 'blue', color: '#90a8ed' },
+  verifying: { label: 'Checking', tone: 'blue', color: '#90a8ed' },
+  fix_needed: { label: 'Fix needed', tone: 'red', color: '#ff7051' },
+  human_review: { label: 'Needs review', tone: 'yellow', color: '#ffc900' },
+  verified: { label: 'Passed', tone: 'teal', color: '#23a094' },
+  paying: { label: 'Paying', tone: 'teal', color: '#23a094' },
+  paid: { label: 'Paid', tone: 'pink', color: '#ff90e8' },
+  payout_failed: { label: 'Payout failed', tone: 'red', color: '#dc341e' },
+  checking: { label: 'Checking', tone: 'blue' }, // legend swatch without the spinner
 };
 
 export function StatusPill({ status }) {
-  const s = STATUS[status] ?? { label: status, tone: 'due' };
+  const s = STATUS[status] ?? { label: status, tone: 'grey' };
   const busy = status === 'verifying' || status === 'paying' || status === 'submitted';
   return (
     <span className={`mark mark-${s.tone}`}>
@@ -29,7 +29,11 @@ export function StatusPill({ status }) {
 export function Logo({ to = '/' }) {
   return (
     <Link to={to} className="logo" aria-label="Cleared home">
-      <span className="stamp">Cleared</span>
+      <svg className="logo-mark" viewBox="0 0 30 30" aria-hidden>
+        <path d="M5 2.5h20a2 2 0 0 1 2 2V27l-3.5-2-3.5 2-3.5-2-3.5 2-3.5-2L3 27V4.5a2 2 0 0 1 2-2z" fill="#ff90e8" stroke="#000" strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M9 13.5l4 4 8-8" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      cleared
     </Link>
   );
 }

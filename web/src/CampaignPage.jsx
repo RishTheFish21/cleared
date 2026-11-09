@@ -8,6 +8,7 @@ import DeliverableDrawer from './DeliverableDrawer.jsx';
 import AddDeliverable from './AddDeliverable.jsx';
 import ChecklistCard from './ChecklistCard.jsx';
 import FundingBanner from './FundingBanner.jsx';
+import { videoIdFrom } from './VideoEvidence.jsx';
 
 export default function CampaignPage() {
   const { id } = useParams();
@@ -49,7 +50,7 @@ export default function CampaignPage() {
         <span className="ledger-op" aria-hidden>−</span>
         <LedgerCell label="Paid to creators" value={money(c.paid_cents)} sub={`${paidCount} of ${ds.length} deliverables`} />
         <span className="ledger-op" aria-hidden>=</span>
-        <LedgerCell label="Held for creators" value={money(c.funded_cents - c.paid_cents)} sub="Only paid out once a post clears" />
+        <LedgerCell held label="Held for creators" value={money(c.funded_cents - c.paid_cents)} sub="Only paid out once a post clears" />
         <LedgerCell
           split
           label="Still owed"
@@ -96,7 +97,16 @@ export default function CampaignPage() {
                         <div style={{ fontWeight: 600 }}>{d.creator_name}</div>
                         {d.creator_handle && <div className="muted small">{d.creator_handle}</div>}
                       </td>
-                      <td>{d.title}</td>
+                      <td>
+                        <div className="thumb">
+                          {videoIdFrom(d.post_url) ? (
+                            <img src={`https://i.ytimg.com/vi/${videoIdFrom(d.post_url)}/mqdefault.jpg`} alt="" loading="lazy" />
+                          ) : (
+                            <span className="thumb-empty">not posted</span>
+                          )}
+                          <span>{d.title}</span>
+                        </div>
+                      </td>
                       <td className="mono muted">{fmtDay(d.due_date)}</td>
                       <td className="num">{money(d.fee_cents)}</td>
                       <td>
@@ -128,9 +138,9 @@ export default function CampaignPage() {
   );
 }
 
-function LedgerCell({ label, value, sub, warn, split }) {
+function LedgerCell({ label, value, sub, warn, split, held }) {
   return (
-    <div className={`ledger-cell${split ? ' split' : ''}`}>
+    <div className={`ledger-cell${split ? ' split' : ''}${held ? ' held' : ''}`}>
       <div className="ledger-label">{label}</div>
       <div className={`ledger-value${warn ? ' warn' : ''}`}>{value}</div>
       {sub && <div className="ledger-sub">{sub}</div>}

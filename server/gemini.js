@@ -53,3 +53,7 @@ export async function generateContent(model, body, tries = 4) {
 }
 
 export const youtubePart = (url) => ({ file_data: { file_uri: url } });
+
+/** Model text tends to arrive with curly quotes and em dashes; show plain punctuation instead. */
+export const plainText = (s) =>
+  s.replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/\s*—\s*/g, ', ').replace(/…/g, '...');

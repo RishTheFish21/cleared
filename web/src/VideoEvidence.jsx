@@ -66,7 +66,7 @@ export function CheckResults({ items, onSeek, showFix = true }) {
   const order = { not_met: 0, unsure: 1, met: 2 };
   const sorted = [...items].sort((a, b) => order[a.status] - order[b.status]);
   return (
-    <div>
+    <div className="checks">
       {sorted.map((i) => (
         <div key={i.id} className="check-row">
           <CheckIcon status={i.status} />
@@ -76,7 +76,7 @@ export function CheckResults({ items, onSeek, showFix = true }) {
               <span className="source-tag">{i.source === 'video' ? 'in video' : 'YouTube data'}</span>
             </div>
             <div className="check-evidence">{i.evidence}</div>
-            {showFix && i.status !== 'met' && i.howToFix && <div className="check-fix">→ {i.howToFix}</div>}
+            {showFix && i.status !== 'met' && i.howToFix && <div className="check-fix">{i.howToFix}</div>}
           </div>
           <div>
             {i.timestampSec != null && onSeek && (

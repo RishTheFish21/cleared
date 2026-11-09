@@ -159,20 +159,17 @@ export default function DeliverableDrawer({ id, onClose }) {
 function PaidBox({ d }) {
   const secs = d.verified_at && d.paid_at ? Math.round((parseTime(d.paid_at) - parseTime(d.verified_at)) / 1000) : null;
   return (
-    <div className="payout-box">
-      <div style={{ minWidth: 0 }}>
-        <div className="payout-amount">{money(d.payout.amount_cents)}</div>
-        <div className="small" style={{ marginBottom: 8 }}>
-          Sent with PayPal Payouts{secs != null ? `, ${secs}s after the post cleared` : ''}
-        </div>
-        <dl className="kv" style={{ gridTemplateColumns: 'auto 1fr', fontSize: 12 }}>
-          <dt>Batch</dt>
-          <dd className="mono">{d.payout.batch_id}</dd>
-          <dt>To</dt>
-          <dd>{d.payout.receiver}</dd>
-        </dl>
+    <div className="panel">
+      <div className="panel-title">Paid {money(d.payout.amount_cents)}</div>
+      <div className="panel-body" style={{ fontSize: 19 }}>
+        Sent with PayPal Payouts{secs != null ? `, ${secs} seconds after the post passed` : ''}
       </div>
-      <span className="stamp stamp-big">Paid</span>
+      <dl className="kv" style={{ gridTemplateColumns: 'auto 1fr' }}>
+        <dt>Batch</dt>
+        <dd className="mono">{d.payout.batch_id}</dd>
+        <dt>To</dt>
+        <dd>{d.payout.receiver}</dd>
+      </dl>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 // Drafts a short, friendly message telling the creator exactly what to fix.
-import { generateJson } from './gemini.js';
+import { generateJson, plainText } from './gemini.js';
 import { config } from './config.js';
 
 const schema = {
@@ -23,7 +23,7 @@ export async function draftFixMessage({ creatorName, brand, videoTitle, failedIt
         },
       ],
     });
-    return data.message.trim();
+    return plainText(data.message.trim());
   } catch {
     return fallback({ creatorName, brand, failedItems, needsReupload });
   }

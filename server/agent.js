@@ -6,7 +6,7 @@ import { tool, zodSchema } from 'ai';
 import { PayPalAgentToolkit } from '@paypal/agent-toolkit/ai-sdk';
 import { z } from 'zod';
 import { config } from './config.js';
-import { generateContent } from './gemini.js';
+import { generateContent, plainText } from './gemini.js';
 import { one, all } from './db.js';
 import { recheckNow } from './pipeline.js';
 
@@ -176,7 +176,7 @@ export async function askAgent(messages) {
     const fnCalls = content.parts.filter((p) => p.functionCall).map((p) => p.functionCall);
     if (!fnCalls.length) {
       const reply = content.parts.map((p) => (p.thought ? '' : p.text ?? '')).join('').trim();
-      return { reply: reply || 'Sorry, I couldn’t find an answer to that.', toolCalls: calls, ms: Date.now() - t0 };
+      return { reply: plainText(reply) || "Sorry, I couldn't find an answer to that.", toolCalls: calls, ms: Date.now() - t0 };
     }
 
     const responses = [];

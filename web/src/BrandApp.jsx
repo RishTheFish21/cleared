@@ -26,11 +26,11 @@ export default function BrandApp() {
     <div className="shell">
       <header className="topbar">
         <Logo />
-        <span className="sandbox-tag">PayPal sandbox</span>
+        <span className="sandbox-tag" title="This demo uses PayPal's sandbox. No real money moves.">PayPal sandbox</span>
         <div className="spacer" />
         <span className="org">Northwind Creator Co.</span>
         {health?.demoMode && (
-          <button className="btn btn-sm" onClick={reset} disabled={resetting} title="Put the demo back to its starting state">
+          <button className="reset" onClick={reset} disabled={resetting} title="Put the demo back to its starting state">
             {resetting ? 'Resetting…' : 'Reset demo'}
           </button>
         )}

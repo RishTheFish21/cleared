@@ -38,7 +38,7 @@ export default function NewCampaign() {
       <div className="page-head">
         <div>
           <h1>New campaign</h1>
-          <div className="sub">Paste the brand’s brief. Cleared turns it into checks it can run on every post.</div>
+          <div className="sub">Paste the brand's brief. Cleared turns it into checks it can run on every post.</div>
         </div>
       </div>
       <form className="new-grid" onSubmit={submit}>
@@ -83,10 +83,10 @@ export default function NewCampaign() {
             )}
           </button>
         </div>
-        <div className="card card-body">
+        <div className="card card-body how-card">
           <h2 style={{ marginBottom: 8 }}>What happens next</h2>
           <ol className="how">
-            <li>AI pulls every checkable requirement out of the brief. It skips anything it can’t verify, like tone or payment terms.</li>
+            <li>AI pulls every checkable requirement out of the brief. It skips anything it can't verify, like tone or payment terms.</li>
             <li>Code adds the FTC disclosure checks to every campaign, whatever the brief says.</li>
             <li>You add creators and the post each one owes, with the agreed fee.</li>
             <li>When a creator submits their link, Gemini watches the video and code checks the YouTube data.</li>

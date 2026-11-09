@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from './api.js';
 
 const SUGGESTIONS = [
-  'What’s still unpaid, money in and money out?',
+  "What's still unpaid, money in and money out?",
   'Has the brand opened our PayPal invoice?',
   'Who is due in the next 3 days?',
   'Send the brand a friendly invoice reminder',
@@ -67,7 +67,7 @@ export default function AskCleared() {
 
   if (!open) {
     return (
-      <button className="ask-fab" onClick={() => setOpen(true)}>
+      <button className="btn btn-primary ask-fab" onClick={() => setOpen(true)}>
         Ask Cleared <kbd>/</kbd>
       </button>
     );
@@ -78,7 +78,7 @@ export default function AskCleared() {
       <header className="ask-head">
         <div>
           <div style={{ fontWeight: 600 }}>Ask Cleared</div>
-          <div className="muted small">Reads PayPal and Cleared. Can’t move money.</div>
+          <div className="muted small">Reads PayPal and Cleared. Can't move money.</div>
         </div>
         <button className="icon-btn" onClick={() => setOpen(false)} aria-label="Close assistant">
           ×
@@ -100,7 +100,7 @@ export default function AskCleared() {
         )}
         {msgs.map((m, i) => (
           <div key={i} className={`ask-msg ask-${m.role}${m.error ? ' ask-error' : ''}`}>
-            <span className="ask-who">{m.role === 'user' ? 'you' : 'cleared'}</span>
+            <span className="ask-who">{m.role === 'user' ? 'You' : 'Cleared'}</span>
             <div style={{ minWidth: 0 }}>
               <div className="ask-text">{m.content}</div>
               {m.toolCalls?.length > 0 && (
@@ -117,7 +117,7 @@ export default function AskCleared() {
         ))}
         {busy && (
           <div className="ask-msg ask-assistant">
-            <span className="ask-who">cleared</span>
+            <span className="ask-who">Cleared</span>
             <div className="ask-text muted">
               <span className="spinner" style={{ display: 'inline-block', marginRight: 8, verticalAlign: -1 }} />
               Looking that up…

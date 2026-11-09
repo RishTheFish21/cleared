@@ -1,0 +1,17 @@
+{
+  "name": "cleared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Creators get paid the minute their sponsored post passes compliance. PayPal Payouts + AI video verification.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "spike:paypal": "node --env-file-if-exists=.env spikes/paypal-payout.mjs",
+    "spike:youtube": "node --env-file-if-exists=.env spikes/youtube-flag.mjs",
+    "spike:gemini": "node --env-file-if-exists=.env spikes/gemini-disclosure.mjs",
+    "spikes": "node --env-file-if-exists=.env spikes/run-all.mjs"
+  }
+}

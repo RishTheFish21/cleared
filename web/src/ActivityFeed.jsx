@@ -20,7 +20,9 @@ const LOOK = {
   'payout.paid': ['$', 'var(--green)', '#fff'],
   'payout.error': ['!', 'var(--red-bg)', 'var(--red)'],
   'payout.failed': ['!', 'var(--red-bg)', 'var(--red)'],
-  'funds.received': ['+', 'var(--green-bg)', 'var(--green)'],
+  'funds.received': ['+', 'var(--green)', '#fff'],
+  'invoice.sent': ['✉', 'var(--blue-bg)', 'var(--blue)'],
+  'invoice.error': ['!', 'var(--red-bg)', 'var(--red)'],
 };
 
 /** Live log of everything the agent did, newest first. */

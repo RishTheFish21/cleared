@@ -1,12 +1,13 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { api, money, usePolling, fmtDay } from './api.js';
+import { money, usePolling, fmtDay } from './api.js';
 import { StatusPill, Stat, Empty } from './ui.jsx';
 const Timeline = lazy(() => import('./Timeline.jsx'));
 import ActivityFeed from './ActivityFeed.jsx';
 import DeliverableDrawer from './DeliverableDrawer.jsx';
 import AddDeliverable from './AddDeliverable.jsx';
 import ChecklistCard from './ChecklistCard.jsx';
+import FundingBanner from './FundingBanner.jsx';
 
 export default function CampaignPage() {
   const { id } = useParams();
@@ -26,12 +27,7 @@ export default function CampaignPage() {
   const paidCount = ds.filter((d) => d.status === 'paid').length;
   const committed = ds.reduce((s, d) => s + d.fee_cents, 0);
 
-  const fund = async () => {
-    const amount = Math.max(c.budget_cents - c.funded_cents, 0);
-    if (!amount) return;
-    await api(`/campaigns/${c.id}/fund`, { method: 'POST', body: { amount_cents: amount } });
-    refresh();
-  };
+  const paidInvoice = c.invoices?.find((i) => i.status === 'PAID');
 
   return (
     <div className="page">
@@ -43,20 +39,19 @@ export default function CampaignPage() {
             {c.checklist?.summary ? ` · ${c.checklist.summary}` : ''}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {c.funded_cents < c.budget_cents && (
-            <button className="btn" onClick={fund}>
-              Record brand payment
-            </button>
-          )}
-          <button className="btn btn-primary" onClick={() => setAdding(true)}>
-            + Add deliverable
-          </button>
-        </div>
+        <button className="btn btn-primary" onClick={() => setAdding(true)}>
+          + Add deliverable
+        </button>
       </div>
 
+      <FundingBanner campaign={c} onChange={refresh} />
+
       <div className="stats">
-        <Stat label="Funded by brand" value={money(c.funded_cents)} sub={`of ${money(c.budget_cents)} budget`} />
+        <Stat
+          label="Funded by brand"
+          value={money(c.funded_cents)}
+          sub={paidInvoice ? `PayPal invoice #${paidInvoice.invoice_number} paid` : `of ${money(c.budget_cents)} budget`}
+        />
         <Stat label="Paid to creators" value={money(c.paid_cents)} sub={`${paidCount} of ${ds.length} deliverables`} />
         <Stat label="Committed fees" value={money(committed)} sub={committed > c.funded_cents ? 'More than funded so far' : 'Covered by funds received'} />
         <Stat label="Needs attention" value={attention} sub={attention ? 'Fixes or reviews pending' : 'All clear'} />

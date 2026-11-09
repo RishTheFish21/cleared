@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom';
 import { Logo } from './ui.jsx';
 import { api, usePolling } from './api.js';
+import AskCleared from './AskCleared.jsx';
 
 export default function BrandApp() {
   const { data: campaigns, refresh } = usePolling('/campaigns', 5000);
@@ -56,6 +57,7 @@ export default function BrandApp() {
           <Outlet />
         </main>
       </div>
+      <AskCleared />
     </div>
   );
 }

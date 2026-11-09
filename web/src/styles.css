@@ -236,6 +236,33 @@ h3 { font-size: 13px; font-weight: 600; }
 /* ---------- new campaign ---------- */
 .new-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
 
+/* ---------- Ask Cleared (operator chat) ---------- */
+.ask-fab {
+  position: fixed; right: 20px; bottom: 20px; z-index: 40; height: 44px; padding: 0 18px; border-radius: 99px; border: 0;
+  background: var(--ink); color: #fff; font-weight: 600; cursor: pointer; box-shadow: var(--shadow-lg); display: inline-flex; align-items: center; gap: 8px;
+}
+.ask-fab span { color: var(--green-bright); }
+.ask-fab:hover { background: #1f2937; }
+.ask-panel {
+  position: fixed; right: 20px; bottom: 20px; z-index: 45; width: min(420px, calc(100vw - 32px)); height: min(620px, calc(100vh - 100px));
+  display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-lg); animation: slide 0.18s ease-out;
+}
+.ask-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.ask-body { flex: 1; overflow: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.ask-suggest { display: block; width: 100%; text-align: left; padding: 9px 12px; margin-bottom: 6px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); cursor: pointer; }
+.ask-suggest:hover { background: var(--gray-bg); }
+.ask-msg { max-width: 92%; }
+.ask-user { align-self: flex-end; }
+.ask-user .ask-text { background: var(--ink); color: #fff; border-radius: 14px 14px 4px 14px; }
+.ask-assistant .ask-text { background: var(--gray-bg); border-radius: 14px 14px 14px 4px; }
+.ask-error .ask-text { background: var(--red-bg); color: var(--red); }
+.ask-text { padding: 9px 12px; white-space: pre-wrap; font-size: 13.5px; }
+.ask-tools { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 5px; }
+.ask-tool { font-family: var(--mono); font-size: 10.5px; padding: 2px 7px; border-radius: 99px; }
+.ask-tool.is-paypal { background: #e0ecff; color: #003087; }
+.ask-tool.is-cleared { background: var(--green-bg); color: var(--green); }
+.ask-input { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); }
+
 /* ---------- Bryntum tweaks ---------- */
 .b-sch-event-content { font-size: 12px; font-weight: 500; }
 .ev-inner { display: flex; flex-direction: column; line-height: 1.2; overflow: hidden; }

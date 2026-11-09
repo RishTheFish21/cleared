@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from './api.js';
 
-const EXAMPLE = `Hi! For the Glow Serum launch we'd love one YouTube video, at least 60 seconds.
+const EXAMPLE = `Hi! For the Ember Drop launch we'd love one YouTube video, at least 60 seconds.
 
-- Show the Glow Serum bottle in the first 10 seconds
+- Show the Ember Drop bottle in the first 10 seconds
 - Tell your audience in your own words why you like it
-- Put @juniperco, our link juniperco.com/glow and the code GLOW15 in the description
+- Put @pepperwick, our link pepperwick.co/ember and the code EMBER15 in the description
 
-Keep it upbeat and please don't mention other skincare brands. Fee is $300, paid on approval. Post by the 20th.`;
+Keep it upbeat and please don't mention other hot sauce brands. Fee is $300, paid on approval. Post by the 20th.`;
 
 export default function NewCampaign() {
   const nav = useNavigate();
@@ -46,11 +46,11 @@ export default function NewCampaign() {
           <div className="row">
             <div className="field">
               <label htmlFor="cn">Campaign name</label>
-              <input id="cn" className="input" required placeholder="Glow Serum launch" value={f.name} onChange={set('name')} />
+              <input id="cn" className="input" required placeholder="Ember Drop launch" value={f.name} onChange={set('name')} />
             </div>
             <div className="field">
               <label htmlFor="cb">Brand</label>
-              <input id="cb" className="input" required placeholder="Juniper & Co." value={f.brand} onChange={set('brand')} />
+              <input id="cb" className="input" required placeholder="Pepperwick" value={f.brand} onChange={set('brand')} />
             </div>
           </div>
           <div className="field">
@@ -65,7 +65,7 @@ export default function NewCampaign() {
                 type="button"
                 className="btn btn-sm btn-ghost"
                 style={{ height: 22 }}
-                onClick={() => setF({ ...f, brief: EXAMPLE, name: f.name || 'Glow Serum launch', brand: f.brand || 'Juniper & Co.' })}
+                onClick={() => setF({ ...f, brief: EXAMPLE, name: f.name || 'Ember Drop launch', brand: f.brand || 'Pepperwick' })}
               >
                 Use example
               </button>

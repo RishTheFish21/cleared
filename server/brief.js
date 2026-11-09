@@ -78,7 +78,7 @@ export function normalizeChecklist(raw, fallbackBrand) {
     reqs.push({ kind, description, value: '', quote_from_brief: '', added_by: 'policy' });
 
   // FTC: the sponsorship must be disclosed in the video itself, and should be clear in text too.
-  if (!has('MENTION_BRAND')) add('MENTION_BRAND', `Says "${brand}" in the video`);
+  if (!has('MENTION_BRAND')) add('MENTION_BRAND', `Mentions "${brand}" (said aloud or shown on screen)`);
   if (!has('DISCLOSE_IN_VIDEO')) add('DISCLOSE_IN_VIDEO', 'Says or shows that the video is sponsored, before or when first endorsing the brand');
   if (!has('DISCLOSE_IN_DESCRIPTION')) add('DISCLOSE_IN_DESCRIPTION', 'Description clearly says it is sponsored (e.g. #ad, "Sponsored by")');
   if (!has('PAID_PROMOTION_FLAG')) add('PAID_PROMOTION_FLAG', 'Tick YouTube\'s "includes paid promotion" box');

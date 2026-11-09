@@ -66,8 +66,8 @@ export async function runCheck(deliverableId) {
       result = await verifyPost({ postUrl: d.post_url, checklist: campaign.checklist });
     } catch (err) {
       update('checks', checkId, { verdict: 'ERROR', error: err.message, finished_at: now() });
-      // Leave it queued; the worker retries after the re-check interval.
-      update('deliverables', d.id, { status: 'submitted', next_check_at: inSeconds(config.recheckSeconds) });
+      // Leave it queued and try again shortly, so a brief Gemini hiccup doesn't stall the creator.
+      update('deliverables', d.id, { status: 'submitted', next_check_at: inSeconds(30) });
       ev(d, 'check.error', `Check failed, will retry: ${err.message}`);
       return;
     }

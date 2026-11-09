@@ -62,3 +62,15 @@ export const timeAgo = (iso) => {
   if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
   return `${Math.floor(s / 86400)}d ago`;
 };
+
+/**
+ * How long the payout took. Counted from when the money was released, so time spent
+ * waiting for the brand's invoice isn't included. afterFunds says whether it was held.
+ */
+export function payoutTiming(d) {
+  if (!d?.paid_at || !d?.verified_at) return null;
+  const passed = parseTime(d.verified_at);
+  const released = d.payout?.created_at ? parseTime(d.payout.created_at) : passed;
+  const start = released > passed ? released : passed;
+  return { secs: Math.max(1, Math.round((parseTime(d.paid_at) - start) / 1000)), afterFunds: released - passed > 5000 };
+}

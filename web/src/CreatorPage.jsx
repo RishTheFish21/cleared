@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { api, money, usePolling, fmtDay, parseTime } from './api.js';
+import { api, money, usePolling, fmtDay, parseTime, payoutTiming } from './api.js';
 import { Logo } from './ui.jsx';
 import { VideoPlayer, CheckResults, videoIdFrom } from './VideoEvidence.jsx';
 
@@ -26,7 +26,7 @@ export default function CreatorPage() {
     funded: funded ? 'done' : '',
     posted: d.post_url ? 'done' : 'current',
     checked: d.verified_at ? 'done' : ['submitted', 'verifying'].includes(s) ? 'current' : ['fix_needed', 'human_review'].includes(s) ? 'warn' : '',
-    paid: s === 'paid' ? 'done' : ['verified', 'paying'].includes(s) ? 'current' : '',
+    paid: s === 'paid' ? 'done' : s === 'paying' || (s === 'verified' && funded) ? 'current' : '',
   };
 
   return (
@@ -54,10 +54,18 @@ export default function CreatorPage() {
 
       <div className="stack" style={{ marginTop: 14 }}>
         {s === 'paid' && <Paid d={d} />}
-        {['verified', 'paying'].includes(s) && (
+        {s === 'verified' && !funded && (
           <div className="card hero" style={{ textAlign: 'center' }}>
-            <div className="spinner" style={{ width: 20, height: 20, color: 'var(--green)', margin: '0 auto 12px' }} />
-            <h2>Your video passed. Sending your money now…</h2>
+            <h2>Your video passed</h2>
+            <p className="muted small">
+              Your {money(d.fee_cents)} goes out the moment {d.brand} pays for the campaign. You don't need to do anything else.
+            </p>
+          </div>
+        )}
+        {(s === 'paying' || (s === 'verified' && funded)) && (
+          <div className="card hero" style={{ textAlign: 'center' }}>
+            <div className="spinner" style={{ width: 20, height: 20, margin: '0 auto 12px' }} />
+            <h2>Your video passed. Sending your money now...</h2>
             <p className="muted small">PayPal usually confirms in under 30 seconds.</p>
           </div>
         )}
@@ -197,13 +205,13 @@ function FixNeeded({ d, result, onDone, onSeek }) {
 }
 
 function Paid({ d }) {
-  const secs = d.verified_at && d.paid_at ? Math.round((parseTime(d.paid_at) - parseTime(d.verified_at)) / 1000) : null;
+  const timing = payoutTiming(d);
   return (
     <div className="panel">
       <div className="panel-title">You've been paid</div>
       <div className="panel-body">
         <strong className="num">{money(d.payout?.amount_cents ?? d.fee_cents)}</strong> sent to your PayPal
-        {secs != null ? `, ${secs} seconds after your video passed` : ''}
+        {timing ? `, ${timing.secs} seconds after ${timing.afterFunds ? `${d.brand}'s payment came in` : 'your video passed'}` : ''}
       </div>
       {d.payout?.batch_id && (
         <p className="small" style={{ margin: '15px 0 0' }}>

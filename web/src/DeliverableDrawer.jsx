@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, money, usePolling, timeAgo, fmtDay, parseTime } from './api.js';
+import { api, money, usePolling, timeAgo, fmtDay, parseTime, payoutTiming } from './api.js';
 import { StatusPill } from './ui.jsx';
 import { VideoPlayer, VerdictBanner, CheckResults, videoIdFrom } from './VideoEvidence.jsx';
 
@@ -157,12 +157,12 @@ export default function DeliverableDrawer({ id, onClose }) {
 }
 
 function PaidBox({ d }) {
-  const secs = d.verified_at && d.paid_at ? Math.round((parseTime(d.paid_at) - parseTime(d.verified_at)) / 1000) : null;
+  const timing = payoutTiming(d);
   return (
     <div className="panel">
       <div className="panel-title">Paid {money(d.payout.amount_cents)}</div>
       <div className="panel-body" style={{ fontSize: 19 }}>
-        Sent with PayPal Payouts{secs != null ? `, ${secs} seconds after the post passed` : ''}
+        Sent with PayPal Payouts{timing ? `, ${timing.secs} seconds after ${timing.afterFunds ? "the brand's payment came in" : 'the post passed'}` : ''}
       </div>
       <dl className="kv" style={{ gridTemplateColumns: 'auto 1fr' }}>
         <dt>Batch</dt>

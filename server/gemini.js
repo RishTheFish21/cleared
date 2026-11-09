@@ -2,7 +2,9 @@
 import { config } from './config.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const RETRYABLE = new Set([429, 500, 503]);
+const RETRYABLE = new Set([429, 500, 503, 504]);
+// A single call that hasn't answered by now is treated as failed, so a check can't hang forever.
+const TIMEOUT_MS = 90_000;
 
 export class GeminiError extends Error {
   constructor(message, status) {
@@ -36,11 +38,21 @@ export async function generateJson({ model, parts, schema, system, temperature =
 /** Raw generateContent call with retries on overload. Returns the response JSON. */
 export async function generateContent(model, body, tries = 4) {
   for (let attempt = 1; ; attempt++) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.gemini.apiKey },
-      body: JSON.stringify(body),
-    });
+    let res;
+    try {
+      res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.gemini.apiKey },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+    } catch (err) {
+      // Timeouts and dropped connections count as retryable (504).
+      const reason = err.name === 'TimeoutError' ? `no answer after ${TIMEOUT_MS / 1000}s` : err.message;
+      if (attempt >= tries) throw new GeminiError(`Gemini ${model}: ${reason}`, 504);
+      await sleep(3000);
+      continue;
+    }
     const json = await res.json().catch(() => ({}));
     if (res.ok) return json;
     const msg = json.error?.message ?? `HTTP ${res.status}`;
@@ -48,7 +60,7 @@ export async function generateContent(model, body, tries = 4) {
     const dailyQuota = res.status === 429 && /per day|PerDay/i.test(JSON.stringify(json));
     if (dailyQuota) throw new GeminiError(`Gemini daily quota reached for ${model}. ${msg.split('\n')[0]}`, 429);
     if (!RETRYABLE.has(res.status) || attempt >= tries) throw new GeminiError(`Gemini ${res.status}: ${msg}`, res.status);
-    await sleep(5000 * 2 ** (attempt - 1));
+    await sleep(3000 * 2 ** (attempt - 1));
   }
 }
 

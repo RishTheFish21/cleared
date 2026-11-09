@@ -146,15 +146,16 @@ async function analyzeVideo(video, checklist, items) {
   let model = config.gemini.videoModel;
   let out;
   try {
-    out = await generateJson({ model, schema: videoSchema, parts });
+    // One quick retry on the main model, then hand over to the lighter one.
+    out = await generateJson({ model, schema: videoSchema, parts, tries: 2 });
   } catch (err) {
-    // Free-tier flash allows only ~20 requests a day. Lite gave the same verdicts on our test
-    // videos, so fall back to it rather than leave the creator waiting.
+    // Free-tier flash allows only ~20 requests a day and is often busy. Lite gave the same
+    // verdicts on our test videos, so fall back to it rather than leave the creator waiting.
     const fallback = config.gemini.videoFallbackModel;
-    if (!(err.status === 429 && /daily quota/i.test(err.message)) || !fallback || fallback === model) throw err;
-    console.warn(`${model} daily quota reached; using ${fallback} for video ${video.id}`);
+    if (![429, 500, 503, 504].includes(err.status) || !fallback || fallback === model) throw err;
+    console.warn(`${model} failed (${err.message.slice(0, 120)}); using ${fallback} for video ${video.id}`);
     model = fallback;
-    out = await generateJson({ model, schema: videoSchema, parts });
+    out = await generateJson({ model, schema: videoSchema, parts, tries: 3 });
   }
   const { data, ms } = out;
   run(

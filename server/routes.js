@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { parseBrief } from './brief.js';
 import { submitPost, recheckNow, approve, reject } from './pipeline.js';
 import { youtubeId } from './youtube.js';
-import { one, all, insert, update, newId } from './db.js';
+import { one, all, insert, update, newId, logEvent } from './db.js';
 import { checkReceiver } from './guards.js';
 import { seedDemo } from './seed.js';
 import { config } from './config.js';
@@ -99,6 +99,7 @@ api.post(
     if (!c) throw notFound('Campaign');
     const amount = cents(req.body, 'amount_cents');
     update('campaigns', c.id, { funded_cents: c.funded_cents + amount });
+    logEvent({ campaignId: c.id, type: 'funds.received', message: `Brand payment of $${(amount / 100).toFixed(2)} recorded` });
     return one('SELECT * FROM campaigns WHERE id = ?', c.id);
   }),
 );

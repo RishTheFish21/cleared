@@ -15,7 +15,8 @@
     "spike:youtube": "node --env-file-if-exists=.env spikes/youtube-flag.mjs",
     "spike:gemini": "node --env-file-if-exists=.env spikes/gemini-disclosure.mjs",
     "spikes": "node --env-file-if-exists=.env spikes/run-all.mjs",
-    "build": "vite build"
+    "build": "vite build",
+    "seed": "node --env-file-if-exists=.env scripts/seed.mjs"
   },
   "dependencies": {
     "@bryntum/scheduler": "npm:@bryntum/scheduler-trial@^7.3.8",

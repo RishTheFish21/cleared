@@ -1,4 +1,10 @@
 // Central config read from the environment (.env locally, dashboard on Render).
+
+// Values pasted into a hosting dashboard often pick up spaces, newlines or quotes.
+for (const k of ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET', 'PAYPAL_TEST_RECEIVER', 'YOUTUBE_API_KEY', 'GEMINI_API_KEY']) {
+  if (process.env[k]) process.env[k] = process.env[k].trim().replace(/^(['"])(.*)\1$/, '$2').trim();
+}
+
 export const config = {
   port: Number(process.env.PORT || 3000),
   dbPath: process.env.DB_PATH || 'data/cleared.db',

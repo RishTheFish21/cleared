@@ -15,7 +15,11 @@ async function getToken() {
     body: 'grant_type=client_credentials',
   });
   const body = await res.json();
-  if (!res.ok) throw new PayPalError('OAuth failed', res.status, body);
+  if (!res.ok) {
+    // OAuth errors use {error, error_description}, not the {name, message} shape of other endpoints.
+    const why = body.error_description || body.error || 'unknown error';
+    throw new PayPalError(`PayPal login failed: ${why}. Check PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET`, res.status, body);
+  }
   cached = { token: body.access_token, expiresAt: Date.now() + body.expires_in * 1000 };
   return cached.token;
 }

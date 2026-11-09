@@ -24,6 +24,7 @@ app.get('/api/health', (_req, res) => {
   });
 });
 app.use('/api', api);
+app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));
 
 // Serve the built frontend, with client-side routes falling back to index.html.
 const dist = fileURLToPath(new URL('../dist', import.meta.url));

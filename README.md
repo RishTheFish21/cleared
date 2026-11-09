@@ -52,3 +52,15 @@ submitted → verifying ─┬─ PASS ─────────▶ verified �
 | POST | `/api/deliverables/:id/recheck` | "I fixed it": re-check now |
 | POST | `/api/deliverables/:id/approve` / `reject` | Human review |
 | GET | `/api/events?since=&campaign_id=` | Activity feed |
+
+## Deploy to Render
+
+The repo includes a [Render Blueprint](render.yaml).
+
+1. In Render: **New → Blueprint**, connect GitHub and pick this repo.
+2. Fill in the secret values it asks for (`PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_TEST_RECEIVER`, `YOUTUBE_API_KEY`, `GEMINI_API_KEY`).
+3. Deploy. On first boot the server seeds the demo campaign.
+
+`DEMO_MODE=true` keeps a public demo safe: payouts and invoices only go to PayPal sandbox accounts, writes are rate-limited, Gemini video checks are capped per day, and a **Reset demo** button restores the starting state.
+
+The free plan sleeps after 15 minutes idle and loses data on restart. For judging, use the Starter plan with the disk shown in `render.yaml`.

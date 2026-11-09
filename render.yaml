@@ -1,0 +1,42 @@
+# Render Blueprint: Dashboard → New → Blueprint → pick this repo.
+# Secrets marked sync:false are entered in the dashboard, never committed.
+services:
+  - type: web
+    name: cleared
+    runtime: node
+    # Free works but sleeps after 15 min idle (about a minute to wake) and loses data on restart.
+    # For judging, switch to "starter" and uncomment the disk below so it stays awake and keeps data.
+    plan: free
+    region: oregon
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: DEMO_MODE
+        value: "true"
+      - key: DAILY_VIDEO_ANALYSES
+        value: "150"
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash
+      - key: GEMINI_TEXT_MODEL
+        value: gemini-3.5-flash-lite
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_TEST_RECEIVER
+        sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      # With a disk (starter plan or above), keep the database on it:
+      # - key: DB_PATH
+      #   value: /var/data/cleared.db
+    # disk:
+    #   name: data
+    #   mountPath: /var/data
+    #   sizeGB: 1

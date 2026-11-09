@@ -27,6 +27,14 @@ export async function generateJson({ model, parts, schema, system, temperature =
   };
   if (system) body.systemInstruction = { parts: [{ text: system }] };
 
+  const json = await generateContent(model, body, tries);
+  const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
+  if (!text) throw new GeminiError(`Empty response (finish reason ${json.candidates?.[0]?.finishReason})`, 200);
+  return { data: JSON.parse(text), usage: json.usageMetadata, ms: Date.now() - t0 };
+}
+
+/** Raw generateContent call with retries on overload. Returns the response JSON. */
+export async function generateContent(model, body, tries = 4) {
   for (let attempt = 1; ; attempt++) {
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: 'POST',
@@ -34,12 +42,11 @@ export async function generateJson({ model, parts, schema, system, temperature =
       body: JSON.stringify(body),
     });
     const json = await res.json().catch(() => ({}));
-    if (res.ok) {
-      const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
-      if (!text) throw new GeminiError(`Empty response (finish reason ${json.candidates?.[0]?.finishReason})`, 200);
-      return { data: JSON.parse(text), usage: json.usageMetadata, ms: Date.now() - t0 };
-    }
+    if (res.ok) return json;
     const msg = json.error?.message ?? `HTTP ${res.status}`;
+    // A daily quota won't clear in seconds, so don't burn time retrying it.
+    const dailyQuota = res.status === 429 && /per day|PerDay/i.test(JSON.stringify(json));
+    if (dailyQuota) throw new GeminiError(`Gemini daily quota reached for ${model}. ${msg.split('\n')[0]}`, 429);
     if (!RETRYABLE.has(res.status) || attempt >= tries) throw new GeminiError(`Gemini ${res.status}: ${msg}`, res.status);
     await sleep(5000 * 2 ** (attempt - 1));
   }

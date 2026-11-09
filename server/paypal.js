@@ -59,3 +59,42 @@ export function createPayout({ id, receiver, amountCents, subject, message, note
 }
 
 export const getPayoutBatch = (batchId) => paypal(`/v1/payments/payouts/${batchId}`);
+
+// ---------- Invoicing v2 ----------
+
+const idFromHref = (href) => href?.split('/').pop();
+// Invoicing v2 names the field currency_code; Payouts v1 uses currency.
+const invMoney = (cents) => ({ value: (cents / 100).toFixed(2), currency_code: 'USD' });
+
+/** Create a draft invoice and return its PayPal id. */
+export async function createInvoice({ requestId, recipientEmail, recipientName, itemName, itemDescription, amountCents, note }) {
+  const { invoice_number } = await paypal('/v2/invoicing/generate-next-invoice-number', { method: 'POST' });
+  const res = await paypal('/v2/invoicing/invoices', {
+    method: 'POST',
+    requestId,
+    body: {
+      detail: {
+        currency_code: 'USD',
+        invoice_number,
+        note,
+        payment_term: { term_type: 'DUE_ON_RECEIPT' },
+      },
+      primary_recipients: [{ billing_info: { email_address: recipientEmail, ...(recipientName ? { business_name: recipientName } : {}) } }],
+      items: [{ name: itemName, description: itemDescription, quantity: '1', unit_amount: invMoney(amountCents), unit_of_measure: 'AMOUNT' }],
+      configuration: { allow_tip: false, tax_inclusive: false },
+    },
+  });
+  return { paypalId: res.id ?? idFromHref(res.href), invoiceNumber: invoice_number };
+}
+
+export const sendInvoice = (paypalId) =>
+  paypal(`/v2/invoicing/invoices/${paypalId}/send`, { method: 'POST', body: { send_to_invoicer: false, send_to_recipient: true } });
+
+export const getInvoice = (paypalId) => paypal(`/v2/invoicing/invoices/${paypalId}`);
+
+/** Record a payment received outside PayPal (e.g. bank transfer). */
+export const recordInvoicePayment = (paypalId, amountCents, method = 'BANK_TRANSFER') =>
+  paypal(`/v2/invoicing/invoices/${paypalId}/payments`, {
+    method: 'POST',
+    body: { method, payment_date: new Date().toISOString().slice(0, 10), amount: invMoney(amountCents), note: 'Recorded in Cleared' },
+  });

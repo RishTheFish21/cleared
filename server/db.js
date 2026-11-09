@@ -72,6 +72,23 @@ CREATE TABLE IF NOT EXISTS payouts (
   updated_at     TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- PayPal invoices the agency sends the brand to fund a campaign.
+-- credited = 1 once the paid amount has been added to campaigns.funded_cents (exactly once).
+CREATE TABLE IF NOT EXISTS invoices (
+  id               TEXT PRIMARY KEY,
+  campaign_id      TEXT NOT NULL REFERENCES campaigns(id),
+  paypal_id        TEXT,
+  invoice_number   TEXT,
+  recipient_email  TEXT NOT NULL,
+  amount_cents     INTEGER NOT NULL,
+  status           TEXT NOT NULL DEFAULT 'CREATING',
+  pay_url          TEXT,
+  credited         INTEGER NOT NULL DEFAULT 0,
+  raw              TEXT,
+  created_at       TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- A video's content can't change after upload, so Gemini's analysis is cached
 -- per (video, checklist). Re-checks after a description fix are then instant.
 CREATE TABLE IF NOT EXISTS video_analyses (
@@ -123,7 +140,7 @@ export function insert(table, row) {
 export function update(table, id, fields) {
   const cols = Object.keys(fields);
   const vals = cols.map((c) => (JSON_COLS.has(c) && fields[c] != null && typeof fields[c] !== 'string' ? JSON.stringify(fields[c]) : fields[c]));
-  const touch = ['deliverables', 'payouts'].includes(table) ? ", updated_at = datetime('now')" : '';
+  const touch = ['deliverables', 'payouts', 'invoices'].includes(table) ? ", updated_at = datetime('now')" : '';
   run(`UPDATE ${table} SET ${cols.map((c) => `${c} = ?`).join(', ')}${touch} WHERE id = ?`, ...vals, id);
 }
 

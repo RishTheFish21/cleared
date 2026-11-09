@@ -34,7 +34,18 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // ---------- campaigns ----------
 
-api.get('/campaigns', wrap(() => all('SELECT * FROM campaigns ORDER BY created_at DESC')));
+api.get(
+  '/campaigns',
+  wrap(() =>
+    all(
+      `SELECT k.id, k.name, k.brand, k.budget_cents, k.funded_cents, k.created_at,
+              COUNT(d.id) AS deliverable_count,
+              COALESCE(SUM(d.status = 'paid'), 0) AS paid_count
+         FROM campaigns k LEFT JOIN deliverables d ON d.campaign_id = k.id
+        GROUP BY k.id ORDER BY k.created_at DESC, k.rowid DESC`,
+    ),
+  ),
+);
 
 api.post(
   '/campaigns',
@@ -129,7 +140,8 @@ api.get(
   '/deliverables/:id',
   wrap((req) => {
     const d = one(
-      `SELECT d.*, cr.name AS creator_name, cr.handle AS creator_handle, k.name AS campaign_name, k.brand, k.checklist
+      `SELECT d.*, cr.name AS creator_name, cr.handle AS creator_handle, k.name AS campaign_name, k.brand, k.checklist,
+              k.funded_cents AS campaign_funded_cents
          FROM deliverables d JOIN creators cr ON cr.id = d.creator_id JOIN campaigns k ON k.id = d.campaign_id
         WHERE d.id = ?`,
       req.params.id,

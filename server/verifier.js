@@ -7,7 +7,9 @@ import { generateJson, youtubePart } from './gemini.js';
 import { config } from './config.js';
 import { one, run } from './db.js';
 
-const DISCLOSURE_RE = /#ad\b|#sponsored\b|\bsponsored by\b|\bpaid (partnership|promotion)\b|\bin partnership with\b|\bthis (video|post) is sponsored\b|\bad:\s/i;
+// The lookbehind skips "not sponsored by", which creators often write.
+const DISCLOSURE_RE =
+  /(?<!\bnot\s)(#ad\b|#sponsored\b|\bsponsored by\b|\bfor sponsoring\b|\bpaid (partnership|promotion)\b|\bin partnership with\b|\bthis (video|post) is sponsored\b|\bad:\s)/i;
 // Roughly what YouTube shows before "...more". FTC: disclosures shouldn't need a click to see.
 const ABOVE_THE_FOLD_CHARS = 150;
 

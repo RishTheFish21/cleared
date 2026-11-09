@@ -47,8 +47,15 @@ export function usePolling(path, intervalMs = 2000) {
 export const money = (cents) =>
   (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: cents % 100 ? 2 : 0 });
 
+/** Server timestamps are either ISO with Z or SQLite "YYYY-MM-DD HH:MM:SS" (UTC). */
+export const parseTime = (s) => new Date(/[zZ]$|[+-]\d\d:?\d\d$/.test(s) ? s : `${s.replace(' ', 'T')}Z`);
+
+/** Due dates are calendar days; read them as local noon so they never shift a day. */
+export const parseDay = (s) => new Date(`${String(s).slice(0, 10)}T12:00:00`);
+export const fmtDay = (s, month = 'short') => parseDay(s).toLocaleDateString(undefined, { month, day: 'numeric' });
+
 export const timeAgo = (iso) => {
-  const s = Math.round((Date.now() - Date.parse(iso.endsWith('Z') || iso.includes('T') ? iso : iso.replace(' ', 'T') + 'Z')) / 1000);
+  const s = Math.round((Date.now() - parseTime(iso).getTime()) / 1000);
   if (s < 5) return 'just now';
   if (s < 60) return `${s}s ago`;
   if (s < 3600) return `${Math.floor(s / 60)}m ago`;

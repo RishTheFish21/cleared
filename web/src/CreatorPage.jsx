@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { api, money, usePolling } from './api.js';
+import { api, money, usePolling, fmtDay, parseTime } from './api.js';
 import { Logo } from './ui.jsx';
 import { VideoPlayer, CheckResults, videoIdFrom } from './VideoEvidence.jsx';
 
@@ -35,7 +35,7 @@ export default function CreatorPage() {
         <div className="brand">{d.brand} · {d.campaign_name}</div>
         <div className="fee">{money(d.fee_cents)}</div>
         <div>
-          {d.title} · due {new Date(d.due_date).toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}
+          {d.title} · due {fmtDay(d.due_date, 'long')}
         </div>
         <div className="steps">
           {[
@@ -192,7 +192,7 @@ function FixNeeded({ d, result, onDone, onSeek }) {
 }
 
 function Paid({ d }) {
-  const secs = d.verified_at && d.paid_at ? Math.round((Date.parse(d.paid_at) - Date.parse(d.verified_at)) / 1000) : null;
+  const secs = d.verified_at && d.paid_at ? Math.round((parseTime(d.paid_at) - parseTime(d.verified_at)) / 1000) : null;
   return (
     <div className="card paid-banner">
       <div className="paid-check">✓</div>

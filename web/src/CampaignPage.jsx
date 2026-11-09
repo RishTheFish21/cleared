@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { api, money, usePolling } from './api.js';
+import { api, money, usePolling, fmtDay } from './api.js';
 import { StatusPill, Stat, Empty } from './ui.jsx';
 const Timeline = lazy(() => import('./Timeline.jsx'));
 import ActivityFeed from './ActivityFeed.jsx';
@@ -99,7 +99,7 @@ export default function CampaignPage() {
                         {d.creator_handle && <div className="muted small">{d.creator_handle}</div>}
                       </td>
                       <td>{d.title}</td>
-                      <td className="muted">{new Date(d.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</td>
+                      <td className="muted">{fmtDay(d.due_date)}</td>
                       <td className="mono">{money(d.fee_cents)}</td>
                       <td>
                         <StatusPill status={d.status} />

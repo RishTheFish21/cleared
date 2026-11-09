@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, money, usePolling, timeAgo } from './api.js';
+import { api, money, usePolling, timeAgo, fmtDay, parseTime } from './api.js';
 import { StatusPill } from './ui.jsx';
 import { VideoPlayer, VerdictBanner, CheckResults, videoIdFrom } from './VideoEvidence.jsx';
 
@@ -49,7 +49,7 @@ export default function DeliverableDrawer({ id, onClose }) {
               <div className="muted small" style={{ marginTop: 3 }}>
                 {d.creator_name}
                 {d.creator_handle ? ` (${d.creator_handle})` : ''} · {money(d.fee_cents)} · due{' '}
-                {new Date(d.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                {fmtDay(d.due_date)}
               </div>
             )}
           </div>
@@ -157,7 +157,7 @@ export default function DeliverableDrawer({ id, onClose }) {
 }
 
 function PaidBox({ d }) {
-  const secs = d.verified_at && d.paid_at ? Math.round((Date.parse(d.paid_at) - Date.parse(d.verified_at)) / 1000) : null;
+  const secs = d.verified_at && d.paid_at ? Math.round((parseTime(d.paid_at) - parseTime(d.verified_at)) / 1000) : null;
   return (
     <div className="payout-box" style={{ marginBottom: 14 }}>
       <div>
@@ -177,7 +177,7 @@ function PaidBox({ d }) {
 }
 
 function timeUntil(iso) {
-  const s = Math.round((Date.parse(iso) - Date.now()) / 1000);
+  const s = Math.round((parseTime(iso) - Date.now()) / 1000);
   if (s <= 5) return 'any second';
   if (s < 90) return `in ${s}s`;
   return `in ${Math.round(s / 60)} min`;

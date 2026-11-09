@@ -1,5 +1,6 @@
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { CheckIcon, fmtTs } from './ui.jsx';
+import { parseTime } from './api.js';
 
 export function videoIdFrom(url) {
   if (!url) return null;
@@ -53,7 +54,7 @@ export function VerdictBanner({ verdict, checkedAt, analysis }) {
         <div className="verdict-sub">
           {sub}
           {analysis?.model && ` · Video checked by ${analysis.model}${analysis.cached ? ' (reused)' : analysis.ms ? ` in ${Math.round(analysis.ms / 1000)}s` : ''}`}
-          {checkedAt && ` · ${new Date(checkedAt.replace(' ', 'T') + 'Z').toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`}
+          {checkedAt && ` · ${parseTime(checkedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`}
         </div>
       </div>
     </div>
@@ -79,7 +80,7 @@ export function CheckResults({ items, onSeek, showFix = true }) {
           </div>
           <div>
             {i.timestampSec != null && onSeek && (
-              <button type="button" className="ts-btn" onClick={() => onSeek(i.timestampSec)} title="Jump to this moment">
+              <button type="button" className="ts-btn" onClick={() => onSeek(i.timestampSec)} aria-label={`Jump video to ${fmtTs(i.timestampSec)}`}>
                 ▶ {fmtTs(i.timestampSec)}
               </button>
             )}

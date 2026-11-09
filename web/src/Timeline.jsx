@@ -6,7 +6,7 @@ import '@bryntum/scheduler/svalbard-light.css';
 import '@bryntum/scheduler/fontawesome/css/fontawesome.css';
 import '@bryntum/scheduler/fontawesome/css/solid.css';
 import { STATUS } from './ui.jsx';
-import { money } from './api.js';
+import { money, parseDay } from './api.js';
 
 const DAY = 86400000;
 const startOfDay = (d) => new Date(new Date(d).setHours(0, 0, 0, 0));
@@ -24,7 +24,7 @@ export default function Timeline({ deliverables, onSelect }) {
     for (const d of deliverables) byCreator.set(d.creator_id, { id: d.creator_id, name: d.creator_name, handle: d.creator_handle });
 
     const events = deliverables.map((d) => {
-      const due = startOfDay(d.due_date);
+      const due = startOfDay(parseDay(d.due_date));
       return {
         id: d.id,
         resourceId: d.creator_id,
@@ -53,6 +53,7 @@ export default function Timeline({ deliverables, onSelect }) {
         startDate={startDate}
         endDate={endDate}
         viewPreset="weekAndDayLetter"
+        tickSize={34}
         rowHeight={58}
         barMargin={9}
         eventStyle="tonal"
@@ -77,10 +78,11 @@ export default function Timeline({ deliverables, onSelect }) {
               }</div>`,
           },
         ]}
+        // Every row is the same deliverable type, so the bar shows what differs: status and fee.
         eventRenderer={({ eventRecord: e }) =>
-          `<div class="ev-inner"><span>${StringHelper.encodeHtml(e.name)}</span><span class="ev-sub">${StringHelper.encodeHtml(
-            STATUS[e.status]?.label ?? e.status,
-          )} · ${money(e.fee)}</span></div>`
+          `<div class="ev-inner"><span>${StringHelper.encodeHtml(STATUS[e.status]?.label ?? e.status)}</span><span class="ev-sub">${money(
+            e.fee,
+          )}</span></div>`
         }
         onEventClick={({ eventRecord }) => onSelect(eventRecord.id)}
       />

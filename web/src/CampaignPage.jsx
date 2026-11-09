@@ -36,7 +36,6 @@ export default function CampaignPage() {
         <div>
           <div className="brand-line">{c.brand}</div>
           <h1>{c.name}</h1>
-          {c.checklist?.summary && <div className="sub">{c.checklist.summary}</div>}
         </div>
         <button className="btn btn-primary" onClick={() => setAdding(true)}>
           + Add deliverable
@@ -47,10 +46,8 @@ export default function CampaignPage() {
 
       <div className="ledger" aria-label="Campaign money">
         <LedgerCell label="Brand paid in" value={money(c.funded_cents)} sub={paidInvoice ? `PayPal invoice #${paidInvoice.invoice_number}` : `of ${money(c.budget_cents)} budget`} />
-        <span className="ledger-op" aria-hidden>−</span>
-        <LedgerCell label="Paid to creators" value={money(c.paid_cents)} sub={`${paidCount} of ${ds.length} deliverables`} />
-        <span className="ledger-op" aria-hidden>=</span>
-        <LedgerCell held label="Held for creators" value={money(c.funded_cents - c.paid_cents)} sub="Only paid out once a post clears" />
+        <LedgerCell op="−" label="Paid to creators" value={money(c.paid_cents)} sub={`${paidCount} of ${ds.length} deliverables`} />
+        <LedgerCell op="=" held label="Held for creators" value={money(c.funded_cents - c.paid_cents)} sub="Only paid out once a post clears" />
         <LedgerCell
           split
           label="Still owed"
@@ -138,11 +135,18 @@ export default function CampaignPage() {
   );
 }
 
-function LedgerCell({ label, value, sub, warn, split, held }) {
+function LedgerCell({ label, value, sub, warn, split, held, op }) {
   return (
     <div className={`ledger-cell${split ? ' split' : ''}${held ? ' held' : ''}`}>
       <div className="ledger-label">{label}</div>
-      <div className={`ledger-value${warn ? ' warn' : ''}`}>{value}</div>
+      <div className={`ledger-value${warn ? ' warn' : ''}`}>
+        {op && (
+          <span className="ledger-op" aria-hidden>
+            {op}
+          </span>
+        )}
+        {value}
+      </div>
       {sub && <div className="ledger-sub">{sub}</div>}
     </div>
   );

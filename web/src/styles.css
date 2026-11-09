@@ -125,13 +125,19 @@ h3 { font-size: 17px; }
 .page-head .sub { font-size: 17px; color: var(--muted); margin-top: 12px; max-width: 44em; }
 
 /* money: one wide card, the held balance gets the colour */
-.ledger { display: grid; grid-template-columns: 1fr auto 1fr auto 1.25fr 1fr 0.8fr; align-items: stretch; background: var(--white); border: 1px solid var(--line); border-radius: var(--r-lg); margin-bottom: 26px; overflow: hidden; }
+.ledger { display: grid; grid-template-columns: 1fr 1fr 1.2fr 1fr 0.8fr; align-items: stretch; background: var(--white); border: 1px solid var(--line); border-radius: var(--r-lg); margin-bottom: 26px; overflow: hidden; }
 .ledger-cell { padding: 18px 20px; min-width: 0; }
-.ledger-cell.held { background: var(--pink); border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
-.ledger-cell.split + .ledger-cell.split { border-left: 1px solid var(--line); }
-.ledger-op { align-self: center; font-size: 30px; color: var(--muted); }
+.ledger-cell + .ledger-cell { border-left: 1px solid var(--line); padding-left: 34px; }
+.ledger-cell.held { background: var(--pink); }
+/* the sign sits on the line between two boxes, level with the numbers */
+.ledger-op {
+  position: absolute; left: -34px; top: 50%; transform: translate(-50%, -50%); z-index: 1;
+  width: 30px; height: 30px; display: grid; place-items: center;
+  background: var(--white); border: 1px solid var(--line); border-radius: 50%;
+  font-size: 18px; line-height: 1; letter-spacing: 0; color: var(--black);
+}
 .ledger-label { font-size: 13.5px; }
-.ledger-value { font-size: 38px; letter-spacing: -0.03em; line-height: 1.1; margin-top: 4px; }
+.ledger-value { position: relative; font-size: 38px; letter-spacing: -0.03em; line-height: 1.1; margin-top: 4px; }
 .ledger-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
 .ledger-cell.held .ledger-sub { color: var(--black); }
 .ledger-value.warn { color: var(--red); }
@@ -299,7 +305,7 @@ h3 { font-size: 17px; }
 /* ---------- responsive ---------- */
 @media (max-width: 1100px) {
   .grid-2 { grid-template-columns: 1fr; }
-  .ledger { grid-template-columns: 1fr auto 1fr auto 1.25fr; }
+  .ledger { grid-template-columns: 1fr 1fr 1.2fr; }
   .ledger-cell.split { display: none; }
 }
 @media (max-width: 800px) {
@@ -308,7 +314,7 @@ h3 { font-size: 17px; }
   .sidebar { display: none; }
   .ledger { grid-template-columns: 1fr 1fr; }
   .ledger-op { display: none; }
-  .ledger-cell.held { border: 0; }
+  .ledger-cell + .ledger-cell { border-left: 0; padding-left: 20px; }
   .ledger-cell.split { display: block; }
   .new-grid { grid-template-columns: 1fr; }
   .page { padding: 20px 16px 48px; }

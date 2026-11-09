@@ -31,7 +31,7 @@ const DEMO_CHECKLIST_RAW = {
 };
 
 const CREATORS = [
-  ['Maya Chen', '@mayalifts', 30000, 0],
+  ['Joe Mendez', '@joelifts', 30000, 0],
   ['Theo Okafor', '@theoplays', 25000, 2],
   ['Priya Raman', '@priyaruns', 40000, 4],
   ['Jordan Lee', '@jordanstreams', 20000, 7],

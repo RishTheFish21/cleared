@@ -5,7 +5,7 @@ import { normalizeChecklist } from './brief.js';
 const day = (n) => {
   const d = new Date();
   d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
+  return d.toLocaleDateString('en-CA'); // local YYYY-MM-DD, so "today" is today where the server runs
 };
 
 export const DEMO_BRIEF = `Hi! For the Glow Serum launch we'd love one YouTube video.
@@ -41,7 +41,9 @@ const CREATORS = [
 /** Wipes campaigns/deliverables/payouts/events (keeps the video-analysis cache) and loads demo data. */
 export function seedDemo({ receiver }) {
   if (!receiver) throw new Error('Set PAYPAL_TEST_RECEIVER to a sandbox personal account email before seeding');
-  db.exec('DELETE FROM events; DELETE FROM payouts; DELETE FROM checks; DELETE FROM deliverables; DELETE FROM creators; DELETE FROM campaigns;');
+  db.exec(
+    'DELETE FROM events; DELETE FROM payouts; DELETE FROM checks; DELETE FROM invoices; DELETE FROM deliverables; DELETE FROM creators; DELETE FROM campaigns;',
+  );
 
   const campaign = insert('campaigns', {
     id: newId('cmp'),
@@ -49,7 +51,7 @@ export function seedDemo({ receiver }) {
     brand: 'Juniper & Co.',
     brief_text: DEMO_BRIEF,
     budget_cents: 150000,
-    funded_cents: 150000, // replaced by the PayPal invoice flow once that lands
+    funded_cents: 0, // funded for real by paying the PayPal invoice in the demo
     checklist: normalizeChecklist(DEMO_CHECKLIST_RAW, 'Juniper & Co.'),
   });
 

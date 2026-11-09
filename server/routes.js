@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { parseBrief } from './brief.js';
-import { submitPost, recheckNow, approve, reject } from './pipeline.js';
+import { submitPost, recheckNow, approve, reject, releaseHeld } from './pipeline.js';
+import { invoiceBrand, markInvoicePaidExternally } from './invoices.js';
 import { youtubeId } from './youtube.js';
-import { one, all, insert, update, newId, logEvent } from './db.js';
+import { one, all, insert, update, newId } from './db.js';
 import { checkReceiver } from './guards.js';
 import { seedDemo } from './seed.js';
 import { config } from './config.js';
@@ -74,7 +75,11 @@ api.get(
       c.id,
     );
     const paid = deliverables.filter((d) => d.status === 'paid').reduce((s, d) => s + d.fee_cents, 0);
-    return { ...c, deliverables, paid_cents: paid };
+    const invoices = all(
+      'SELECT id, invoice_number, recipient_email, amount_cents, status, pay_url, credited, created_at FROM invoices WHERE campaign_id = ? ORDER BY created_at DESC, rowid DESC',
+      c.id,
+    );
+    return { ...c, deliverables, invoices, paid_cents: paid };
   }),
 );
 
@@ -91,16 +96,30 @@ api.post(
   }),
 );
 
-// Temporary: record funds as received. To be replaced by the PayPal Invoicing flow.
+// ---------- brand funding (PayPal Invoicing) ----------
+
 api.post(
-  '/campaigns/:id/fund',
-  wrap((req) => {
+  '/campaigns/:id/invoice',
+  wrap(async (req) => {
     const c = one('SELECT * FROM campaigns WHERE id = ?', req.params.id);
     if (!c) throw notFound('Campaign');
+    const email = str(req.body, 'recipient_email', { max: 200 });
+    if (!EMAIL.test(email)) throw bad('recipient_email must be an email address');
+    checkReceiver(email);
     const amount = cents(req.body, 'amount_cents');
-    update('campaigns', c.id, { funded_cents: c.funded_cents + amount });
-    logEvent({ campaignId: c.id, type: 'funds.received', message: `Brand payment of $${(amount / 100).toFixed(2)} recorded` });
-    return one('SELECT * FROM campaigns WHERE id = ?', c.id);
+    if (amount < 100) throw bad('Invoice at least $1');
+    return invoiceBrand({ campaignId: c.id, recipientEmail: email, amountCents: amount });
+  }),
+);
+
+/** The brand paid another way (e.g. bank transfer): record it on the PayPal invoice. */
+api.post(
+  '/invoices/:id/mark-paid',
+  wrap(async (req) => {
+    // The worker may credit it first; releasing held payouts is safe to run either way.
+    const { invoice } = await markInvoicePaidExternally(req.params.id);
+    if (invoice.credited) await releaseHeld(invoice.campaign_id);
+    return invoice;
   }),
 );
 

@@ -12,11 +12,11 @@ When a brand pays a creator to make a sponsored video, someone on the brand's si
 
 ## What Cleared does
 
-A campaign starts with the agency sending the brand a PayPal invoice for the budget, because Cleared pays creators out of money the brand has already paid rather than the agency's own funds. The agency pastes in the brand's brief, Gemini turns it into a checklist of the things that can be verified, and Cleared adds the FTC's disclosure rules to every campaign regardless of what the brief says.
+A campaign starts with the agency sending the brand a PayPal invoice for the budget, because Cleared pays creators out of money the brand has already paid rather than the agency's own funds. The agency pastes in the brand's brief, Gemini turns it into a checklist of the things that can be verified, and Cleared adds the FTC's disclosure rules to every campaign.
 
-Each creator gets their own phone-friendly page where they paste the link to their video once it's live. Cleared then runs two kinds of checks at the same time: ordinary code reads the YouTube data, such as the description, tags, links and the "includes paid promotion" setting, while Gemini watches the video and reports when the product appears, whether the brand is mentioned and the moment the sponsorship is disclosed. Every check in the result shows what was found, and the video checks include a timestamp you can click to jump to that point in the video. If anything fails, Gemini writes the creator a plain explanation of what to change.
+Each creator has a page where they submit the link to their video once it's live, and Cleared then runs two sets of checks in parallel. Code reads the YouTube data, including the description, tags and the "includes paid promotion" setting, while Gemini watches the video and reports when the product appears, whether the brand is mentioned and when the creator says the video is sponsored. Results usually arrive in about fifteen seconds and show the evidence for each check, with a clickable timestamp that moves the video to the relevant point. When something fails, Gemini drafts a short message telling the creator what to change. 
 
-The decision to pay is made by code rather than by the AI. A payment goes out when every check has passed, the brand's money has arrived and the fee is under a safety limit, and if the brand hasn't paid its invoice yet the payout waits and is released automatically once it has.
+The decision to pay is made by code rather than by the AI so a payment goes out when every check has passed, the brand's money has arrived and the fee is under a safety limit, and if the brand hasn't paid its invoice yet the payout waits and is released automatically once it has.
 
 The agency can also use Ask Cleared, an assistant built on PayPal's Agent Toolkit that answers questions about invoices and campaigns using live PayPal data and can send the brand a payment reminder when asked, but has no way of moving money.
 

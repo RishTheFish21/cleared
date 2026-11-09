@@ -17,8 +17,6 @@ const TOOL_LABEL = {
   get_invoice: 'get_invoice',
   search_invoicing: 'search_invoicing',
   send_invoice_reminder: 'send_invoice_reminder',
-  list_transactions: 'list_transactions',
-  get_merchant_insights: 'get_merchant_insights',
 };
 
 /** Operator chat. Answers come from Gemini using PayPal's Agent Toolkit and Cleared's records. */

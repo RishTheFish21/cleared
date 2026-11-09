@@ -1,5 +1,5 @@
 // "Ask Cleared": an operator chat. Gemini answers questions about campaigns and money using
-// PayPal's official Agent Toolkit (invoices, transactions, insights) plus read-only views of
+// PayPal's official Agent Toolkit (invoices) plus read-only views of
 // Cleared's own records. It can nudge a brand about an invoice, but it can never move money:
 // payouts only happen through the verify → policy → pay pipeline.
 import { tool, zodSchema } from 'ai';
@@ -19,13 +19,42 @@ function getPayPalTools() {
     configuration: {
       actions: {
         invoices: { list: true, get: true, search: true, sendReminder: true },
-        transactions: { list: true },
-        insights: { get: true },
       },
       context: { sandbox: config.paypal.apiBase.includes('sandbox') },
     },
   });
   const tools = toolkit.getTools();
+
+  // The PayPal account may hold invoices from other work or old tests. The assistant
+  // only ever sees invoices Cleared created, so every answer matches the dashboard.
+  const isOurs = (id) => !!one('SELECT id FROM invoices WHERE paypal_id = ?', id);
+  const onlyOurs = (text) => {
+    let data;
+    try {
+      data = typeof text === 'string' ? JSON.parse(text) : text;
+    } catch {
+      return text;
+    }
+    for (const key of ['items', 'invoices']) {
+      if (Array.isArray(data?.[key])) {
+        data[key] = data[key].filter((inv) => isOurs(inv.id));
+        if ('total_items' in data) data.total_items = data[key].length;
+        if ('total_pages' in data) data.total_pages = 1;
+      }
+    }
+    delete data?.links;
+    return JSON.stringify(data);
+  };
+  for (const name of ['list_invoices', 'search_invoicing']) {
+    const t = tools[name];
+    tools[name] = { ...t, execute: async (args, opts) => onlyOurs(await t.execute(args, opts)) };
+  }
+  const get = tools.get_invoice;
+  tools.get_invoice = {
+    ...get,
+    execute: async (args, opts) =>
+      isOurs(args.invoice_id) ? get.execute(args, opts) : { ok: false, message: 'That invoice was not created by Cleared.' },
+  };
 
   // Reminders only for invoices Cleared created, and only to the invoice's own recipient.
   const reminder = tools.send_invoice_reminder;
@@ -129,7 +158,7 @@ const SYSTEM = () => `You are Cleared's operator assistant for an influencer-mar
 Cleared verifies creators' sponsored YouTube posts against the brand brief and FTC disclosure rules, and pays creators through PayPal Payouts once a post passes and the brand's invoice is paid.
 
 How to work:
-- Use the cleared_* tools for campaigns, deliverables, evidence and Cleared's invoices. Use the PayPal tools for live PayPal data (invoice details, reminders, transactions, insights). PayPal invoice ids look like INV2-XXXX-...
+- Use the cleared_* tools for campaigns, deliverables, evidence and Cleared's invoices. Use the PayPal tools for live PayPal invoice data (status, whether the brand viewed it, payments, reminders). PayPal invoice ids look like INV2-XXXX-...
 - Look things up before answering. Quote real numbers, names and invoice numbers. Never guess amounts.
 - You cannot pay, approve or change payouts. If asked, explain that money only moves when a post passes its checks and the campaign is funded, or when a person approves it in the review panel.
 - Only send an invoice reminder when the user asks you to.

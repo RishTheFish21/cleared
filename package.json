@@ -9,14 +9,28 @@
     "node": ">=22.13"
   },
   "scripts": {
-    "dev": "node --env-file-if-exists=.env --watch server/index.js",
+    "dev": "node scripts/dev.mjs",
     "start": "node --env-file-if-exists=.env server/index.js",
     "spike:paypal": "node --env-file-if-exists=.env spikes/paypal-payout.mjs",
     "spike:youtube": "node --env-file-if-exists=.env spikes/youtube-flag.mjs",
     "spike:gemini": "node --env-file-if-exists=.env spikes/gemini-disclosure.mjs",
-    "spikes": "node --env-file-if-exists=.env spikes/run-all.mjs"
+    "spikes": "node --env-file-if-exists=.env spikes/run-all.mjs",
+    "build": "vite build"
   },
   "dependencies": {
-    "express": "^4.22.3"
+    "@bryntum/scheduler": "npm:@bryntum/scheduler-trial@^7.3.8",
+    "@bryntum/scheduler-react": "^7.3.8",
+    "express": "^4.22.3",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
+    "vite": "^6.4.5"
+  },
+  "allowScripts": {
+    "@bryntum/scheduler-trial@7.3.8": true,
+    "@bryntum/scheduler-trial-lib@1.0.1": true
   }
 }

@@ -6,12 +6,17 @@
   "type": "module",
   "license": "MIT",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13"
   },
   "scripts": {
+    "dev": "node --env-file-if-exists=.env --watch server/index.js",
+    "start": "node --env-file-if-exists=.env server/index.js",
     "spike:paypal": "node --env-file-if-exists=.env spikes/paypal-payout.mjs",
     "spike:youtube": "node --env-file-if-exists=.env spikes/youtube-flag.mjs",
     "spike:gemini": "node --env-file-if-exists=.env spikes/gemini-disclosure.mjs",
     "spikes": "node --env-file-if-exists=.env spikes/run-all.mjs"
+  },
+  "dependencies": {
+    "express": "^4.22.3"
   }
 }

@@ -1,5 +1,5 @@
 // Demo data. Uses a made-up brand so the demo video carries no third-party trademarks.
-import { db, insert, newId } from './db.js';
+import { db, insert, newId, one } from './db.js';
 import { normalizeChecklist } from './brief.js';
 
 const day = (n) => {
@@ -30,12 +30,13 @@ const DEMO_CHECKLIST_RAW = {
   ignored: ['Keep it upbeat', "Don't mention other energy drink brands", 'Fee is agreed per creator, paid on approval'],
 };
 
+// Days until each video is due. The demo re-seeds weekly, so a week of headroom keeps every date ahead.
 const CREATORS = [
-  ['Joe Mendez', '@joelifts', 30000, 0],
-  ['Theo Okafor', '@theoplays', 25000, 2],
-  ['Priya Raman', '@priyaruns', 40000, 4],
-  ['Jordan Lee', '@jordanstreams', 20000, 7],
-  ['Sofia Alvarez', '@sofiaonthemove', 35000, 10],
+  ['Joe Mendez', '@joelifts', 30000, 7],
+  ['Theo Okafor', '@theoplays', 25000, 9],
+  ['Priya Raman', '@priyaruns', 40000, 11],
+  ['Jordan Lee', '@jordanstreams', 20000, 14],
+  ['Sofia Alvarez', '@sofiaonthemove', 35000, 17],
 ];
 
 /** Wipes campaigns/deliverables/payouts/events (keeps the video-analysis cache) and loads demo data. */
@@ -67,4 +68,20 @@ export function seedDemo({ receiver }) {
     });
   }
   return campaign;
+}
+
+/**
+ * The public demo resets itself once it's a week old so the sample due dates stay in the future.
+ * It waits for a quiet hour, so nobody testing the demo has their session wiped. Returns true if it re-seeded.
+ */
+export function refreshDemoIfStale({ receiver }) {
+  const stale = one(`SELECT MIN(created_at) <= datetime('now', '-7 days') AS stale FROM campaigns`)?.stale;
+  if (!stale) return false;
+  const busy = one(
+    `SELECT EXISTS (SELECT 1 FROM events WHERE created_at > strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-1 hour'))
+         OR EXISTS (SELECT 1 FROM campaigns WHERE created_at > datetime('now', '-1 hour')) AS busy`,
+  )?.busy;
+  if (busy) return false;
+  seedDemo({ receiver });
+  return true;
 }

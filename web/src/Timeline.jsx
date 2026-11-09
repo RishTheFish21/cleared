@@ -38,9 +38,10 @@ export default function Timeline({ deliverables, onSelect }) {
       };
     });
 
+    // Open on the deliverables themselves, even when they're weeks away.
     const today = startOfDay(Date.now());
     const dates = events.flatMap((e) => [e.startDate, e.endDate]).concat(today);
-    const min = new Date(Math.min(...dates) - 3 * DAY);
+    const min = new Date(Math.min(...events.map((e) => e.startDate.getTime())) - 3 * DAY);
     const max = new Date(Math.max(...dates.map(Number), today.getTime() + 14 * DAY) + 3 * DAY);
     return { resources: [...byCreator.values()], events, startDate: min, endDate: max };
     // eslint-disable-next-line react-hooks/exhaustive-deps

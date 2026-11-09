@@ -295,6 +295,7 @@ h3 { font-size: 17px; }
   --b-grid-header-color: var(--black);
   font-family: var(--sans);
 }
+.timeline-wrap .b-sch-event-wrap { transition: none !important; }
 .timeline-wrap .b-sch-event { border: 1px solid var(--black) !important; border-radius: 6px !important; color: var(--black) !important; }
 .timeline-wrap .b-sch-event.teal-text { color: var(--white) !important; }
 .b-sch-event-content { font-size: 13px; }

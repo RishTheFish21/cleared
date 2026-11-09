@@ -6,7 +6,7 @@ import { config, missingKeys } from './config.js';
 import { api } from './routes.js';
 import { startWorker } from './pipeline.js';
 import { rateLimit } from './guards.js';
-import { seedDemo } from './seed.js';
+import { seedDemo, refreshDemoIfStale } from './seed.js';
 import { one } from './db.js';
 
 const app = express();
@@ -42,4 +42,14 @@ app.listen(config.port, () => {
     console.log('Seeded demo data');
   }
   startWorker();
+  if (config.demo.enabled) {
+    setInterval(() => {
+      try {
+        if (refreshDemoIfStale({ receiver: config.demo.receiver })) console.log('Weekly demo refresh: re-seeded with new due dates');
+      } catch (err) {
+        console.error('demo refresh:', err.message);
+      }
+    }, 10 * 60 * 1000);
+  }
 });
+

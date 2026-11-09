@@ -22,9 +22,13 @@ export const config = {
     // Video analysis model (needs YouTube URL input).
     // 3.5-flash matched 3.8-flash's verdicts on our test videos in ~10s instead of 1-3 min.
     videoModel: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
+    videoFallbackModel: process.env.GEMINI_VIDEO_FALLBACK_MODEL || 'gemini-3.5-flash-lite',
     // Fast text model for brief parsing and fix messages.
     // Lite parsed our test brief identically to 3.8-flash in ~1.5s vs ~2 minutes.
     textModel: process.env.GEMINI_TEXT_MODEL || 'gemini-3.5-flash-lite',
+    // Operator chat. Lite handled multi-step PayPal tool use well in ~3s and has far more
+    // free-tier quota than flash (which allows 20 requests/day).
+    agentModel: process.env.GEMINI_AGENT_MODEL || 'gemini-3.5-flash-lite',
   },
 
   // Hard safety limits. The AI never sets amounts; these cap what code can pay.
@@ -38,6 +42,7 @@ export const config = {
     enabled: process.env.DEMO_MODE === 'true',
     receiver: process.env.PAYPAL_TEST_RECEIVER,
     dailyVideoAnalyses: Number(process.env.DAILY_VIDEO_ANALYSES || 150),
+    dailyAgentRequests: Number(process.env.DAILY_AGENT_REQUESTS || 300),
   },
 
   // Seconds between automatic re-checks of a FIX_NEEDED deliverable.

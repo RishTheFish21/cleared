@@ -142,8 +142,21 @@ async function analyzeVideo(video, checklist, items) {
   if (cached) return { ...cached.result, cached: true, ms: cached.ms, model: cached.model };
 
   if (videoBudgetLeft() <= 0) throw new Error('Daily limit for video checks reached. Try again tomorrow.');
-  const model = config.gemini.videoModel;
-  const { data, ms } = await generateJson({ model, schema: videoSchema, parts: [youtubePart(video.url), { text: videoPrompt(checklist, items) }] });
+  const parts = [youtubePart(video.url), { text: videoPrompt(checklist, items) }];
+  let model = config.gemini.videoModel;
+  let out;
+  try {
+    out = await generateJson({ model, schema: videoSchema, parts });
+  } catch (err) {
+    // Free-tier flash allows only ~20 requests a day. Lite gave the same verdicts on our test
+    // videos, so fall back to it rather than leave the creator waiting.
+    const fallback = config.gemini.videoFallbackModel;
+    if (!(err.status === 429 && /daily quota/i.test(err.message)) || !fallback || fallback === model) throw err;
+    console.warn(`${model} daily quota reached; using ${fallback} for video ${video.id}`);
+    model = fallback;
+    out = await generateJson({ model, schema: videoSchema, parts });
+  }
+  const { data, ms } = out;
   run(
     'INSERT OR REPLACE INTO video_analyses (video_id, checklist_hash, model, result, ms) VALUES (?, ?, ?, ?, ?)',
     video.id,

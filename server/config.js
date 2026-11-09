@@ -16,7 +16,8 @@ export const config = {
     // Video analysis model (needs YouTube URL input).
     videoModel: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
     // Fast text model for brief parsing and fix messages.
-    textModel: process.env.GEMINI_TEXT_MODEL || process.env.GEMINI_MODEL || 'gemini-3.8-flash',
+    // Lite parsed our test brief identically to 3.8-flash in ~1.5s vs ~2 minutes.
+    textModel: process.env.GEMINI_TEXT_MODEL || 'gemini-3.5-flash-lite',
   },
 
   // Hard safety limits. The AI never sets amounts; these cap what code can pay.

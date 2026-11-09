@@ -72,6 +72,18 @@ CREATE TABLE IF NOT EXISTS payouts (
   updated_at     TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- A video's content can't change after upload, so Gemini's analysis is cached
+-- per (video, checklist). Re-checks after a description fix are then instant.
+CREATE TABLE IF NOT EXISTS video_analyses (
+  video_id       TEXT NOT NULL,
+  checklist_hash TEXT NOT NULL,
+  model          TEXT NOT NULL,
+  result         TEXT NOT NULL,
+  ms             INTEGER,
+  created_at     TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (video_id, checklist_hash)
+);
+
 -- Append-only audit trail shown in the UI.
 CREATE TABLE IF NOT EXISTS events (
   id             INTEGER PRIMARY KEY AUTOINCREMENT,

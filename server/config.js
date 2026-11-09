@@ -14,7 +14,8 @@ export const config = {
   gemini: {
     apiKey: process.env.GEMINI_API_KEY,
     // Video analysis model (needs YouTube URL input).
-    videoModel: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
+    // 3.5-flash matched 3.8-flash's verdicts on our test videos in ~10s instead of 1-3 min.
+    videoModel: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
     // Fast text model for brief parsing and fix messages.
     // Lite parsed our test brief identically to 3.8-flash in ~1.5s vs ~2 minutes.
     textModel: process.env.GEMINI_TEXT_MODEL || 'gemini-3.5-flash-lite',

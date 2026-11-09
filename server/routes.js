@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { parseBrief } from './brief.js';
 import { submitPost, recheckNow, approve, reject, releaseHeld } from './pipeline.js';
 import { invoiceBrand, markInvoicePaidExternally } from './invoices.js';
+import { askAgent } from './agent.js';
 import { youtubeId } from './youtube.js';
 import { one, all, insert, update, newId } from './db.js';
 import { checkReceiver } from './guards.js';
@@ -193,6 +194,33 @@ api.post(
 api.post('/deliverables/:id/recheck', wrap((req) => (recheckNow(req.params.id), { ok: true })));
 api.post('/deliverables/:id/approve', wrap(async (req) => (await approve(req.params.id, str(req.body, 'note', { optional: true, max: 500 }) ?? ''), { ok: true })));
 api.post('/deliverables/:id/reject', wrap((req) => (reject(req.params.id, str(req.body, 'message', { max: 1000 })), { ok: true })));
+
+// ---------- operator chat ----------
+
+let agentDay = '';
+let agentCount = 0;
+
+api.post(
+  '/agent',
+  wrap(async (req) => {
+    const msgs = req.body?.messages;
+    if (!Array.isArray(msgs) || !msgs.length || msgs.length > 30) throw bad('messages must be a non-empty list');
+    const clean = msgs.map((m) => {
+      if (!['user', 'assistant'].includes(m?.role) || typeof m.content !== 'string' || !m.content.trim() || m.content.length > 2000) {
+        throw bad('each message needs a role (user/assistant) and text under 2000 characters');
+      }
+      return { role: m.role, content: m.content };
+    });
+    if (clean.at(-1).role !== 'user') throw bad('the last message must be from the user');
+
+    // Daily cap so a public demo can't run up the AI bill.
+    const today = new Date().toISOString().slice(0, 10);
+    if (today !== agentDay) [agentDay, agentCount] = [today, 0];
+    if (++agentCount > config.demo.dailyAgentRequests) throw new HttpError(429, 'The assistant has hit its daily limit. Try again tomorrow.');
+
+    return askAgent(clean);
+  }),
+);
 
 // ---------- demo ----------
 

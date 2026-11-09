@@ -1,66 +1,132 @@
 # Cleared
 
-Creators get paid the minute their sponsored post goes live and passes compliance.
-AI checks the video against the brand brief and FTC disclosure rules; PayPal Payouts pays the creator in seconds.
+Cleared checks a creator's sponsored YouTube video against the brand's brief and the FTC's disclosure rules, and when the video passes it pays the creator through PayPal, usually about twenty seconds later. I built it for the PayPal "Build What's Next with PayPal and AI" hackathon.
 
-> Work in progress for the PayPal "Build What's Next with PayPal and AI" hackathon.
+- Live demo, running in the PayPal sandbox with no login needed: https://cleared-fhdb.onrender.com/
+- Demo video: https://youtu.be/NpAoDbv0odA
+- The project is released under the [MIT license](LICENSE).
 
-## Go/no-go tests (`spikes/`)
+## The problem
 
-No dependencies, just Node 22+.
+When a brand pays a creator to make a sponsored video, someone on the brand's side usually has to watch the whole thing, compare it with the brief, check that the creator disclosed the sponsorship the way the FTC requires, go back and forth with the creator about any fixes, and then send the payment by hand. Creators often wait weeks to be paid, and even with all of that effort the most common mistake still gets through, which is a creator praising the product for most of the video and mentioning that it's sponsored near the end.
 
-1. `cp .env.example .env` and fill it in.
-2. Run all three tests: `npm run spikes`, or one at a time:
-   - `npm run spike:paypal`: sends a $1 sandbox payout and polls until it settles.
-   - `npm run spike:youtube`: reads title, views and the "paid promotion" flag.
-   - `npm run spike:gemini`: Gemini watches the video and returns timestamped disclosure evidence.
+## What Cleared does
 
-Raw responses are saved to `spikes/out/` (git-ignored).
+A campaign starts with the agency sending the brand a PayPal invoice for the budget, because Cleared pays creators out of money the brand has already paid rather than the agency's own funds. The agency pastes in the brand's brief, Gemini turns it into a checklist of the things that can be verified, and Cleared adds the FTC's disclosure rules to every campaign regardless of what the brief says.
 
-## Run the server
+Each creator gets their own phone-friendly page where they paste the link to their video once it's live. Cleared then runs two kinds of checks at the same time: ordinary code reads the YouTube data, such as the description, tags, links and the "includes paid promotion" setting, while Gemini watches the video and reports when the product appears, whether the brand is mentioned and the moment the sponsorship is disclosed. Every check in the result shows what was found, and the video checks include a timestamp you can click to jump to that point in the video. If anything fails, Gemini writes the creator a plain explanation of what to change.
+
+The decision to pay is made by code rather than by the AI. A payment goes out when every check has passed, the brand's money has arrived and the fee is under a safety limit, and if the brand hasn't paid its invoice yet the payout waits and is released automatically once it has.
+
+The agency can also use Ask Cleared, an assistant built on PayPal's Agent Toolkit that answers questions about invoices and campaigns using live PayPal data and can send the brand a payment reminder when asked, but has no way of moving money.
+
+## Sample videos
+
+I made these two videos myself for a fictional brand called Northpaw and its Charge energy drink, which is the brand used in the demo campaign.
+
+| Video | What Cleared should report |
+|---|---|
+| [This energy drink actually slaps](https://www.youtube.com/watch?v=LilMRZ70U9I) | This one should come back as needing fixes, because the creator praises the drink from the start and doesn't disclose the sponsorship until 0:21. The description is also missing #ad, @northpaw and the campaign link, and the paid promotion box isn't ticked. |
+| [What I drink before a morning workout](https://www.youtube.com/watch?v=4wrW2kegYs4) | This one should pass all eight checks, since the disclosure comes at the start, the can is on screen, the brand is named and the description and YouTube settings are all correct. |
+
+## Trying it out
+
+The live demo runs on Render's free plan, so the first page load can take up to a minute while the server wakes up. Everything uses the PayPal sandbox, so no real money moves.
+
+1. Open https://cleared-fhdb.onrender.com/ and click Reset demo in the top right so you start from a clean campaign.
+2. Click Invoice brand with PayPal and then Send invoice. The email field is already filled in with a sandbox account.
+3. Click Joe Mendez's row, choose Open creator view, and submit the first sample video, `https://www.youtube.com/watch?v=LilMRZ70U9I`. After around 15 to 30 seconds it should come back as needing fixes, and in the dashboard drawer you can click the 0:21 timestamp to jump to the late disclosure.
+4. Back on Joe's page, submit the corrected video, `https://www.youtube.com/watch?v=4wrW2kegYs4`. It should pass, although the payout will be held because the brand hasn't paid yet.
+5. On the dashboard, click Brand paid by bank transfer. This records the invoice as paid in PayPal, and Cleared releases Joe's payout through PayPal Payouts within about twenty seconds.
+6. Press the / key or click Ask Cleared and try asking whether the brand has opened its PayPal invoice, or ask it to pay someone and see how it responds.
+
+To keep the public demo safe, it accepts PayPal sandbox email addresses and nothing else, limits how many requests can be made, and caps the number of AI calls each day. If Gemini's free tier is busy when you try it, video checks switch to a lighter model automatically.
+
+## How PayPal is used
+
+All PayPal calls go to the sandbox at `api-m.sandbox.paypal.com` and authenticate with OAuth client credentials.
+
+- The PayPal Invoicing API (v2) is how the brand's money comes in. Cleared creates and sends the invoice, keeps checking its status, and when it's paid, or recorded as paid outside PayPal, credits the campaign once inside a database transaction before releasing any payouts that were waiting for funds. The code is in [`server/invoices.js`](server/invoices.js).
+- The PayPal Payouts API is how creators get paid. Each payout uses its own database record as the `sender_batch_id` and sends a `PayPal-Request-Id`, so a retry or a crash at the wrong moment can never pay a creator twice, and a background worker checks the batch until PayPal confirms the money has arrived. The code is in [`server/payouts.js`](server/payouts.js).
+- The PayPal Agent Toolkit (`@paypal/agent-toolkit`) provides the invoice tools behind Ask Cleared, which can list, look up and search invoices and send reminders. I wrapped those tools so the assistant sees the invoices Cleared created and nothing else in the PayPal account, and sends reminders to the invoice's own recipient. The code is in [`server/agent.js`](server/agent.js).
+
+## How AI is used
+
+Cleared calls Google Gemini through its REST API for four separate jobs.
+
+- Watching the video is handled by `gemini-3.5-flash`, which receives the YouTube URL directly and returns structured results with a status, evidence and timestamp for each requirement that needs the video. If that model is busy or has used up its free quota, Cleared falls back to `gemini-3.5-flash-lite`. Each analysis is saved per video and checklist, so a creator who fixes their description gets re-checked instantly without the video being watched again. The code is in [`server/verifier.js`](server/verifier.js).
+- Reading the brief is handled by `gemini-3.5-flash-lite`, which turns the brand's written brief into a checklist and lists anything it can't verify automatically, such as the tone of the video. The code is in [`server/brief.js`](server/brief.js).
+- Writing fix messages to creators in plain English is also handled by `gemini-3.5-flash-lite`, in [`server/fixer.js`](server/fixer.js).
+- Running Ask Cleared's tool calls uses my own function-calling loop, which I wrote so that newer Gemini models get their thought signatures passed back correctly while still running the PayPal toolkit's tools.
+
+Throughout the project the AI is responsible for judging what happened in the video, and code is responsible for deciding whether money moves. Code compares the timestamps Gemini returns, for example to work out whether the disclosure came before the first endorsement, and treats any claim that comes without a timestamp as unsure so that a person reviews it. The payment decision lives in a small policy module with no AI in it, [`server/policy.js`](server/policy.js).
+
+## Sponsor tools
+
+The main dashboard view is built with the Bryntum Scheduler. It shows a row for each creator and a bar for each deliverable across its posting window, coloured by where that video is in the process, with a line marking the current time and tooltips on each bar, and clicking a bar opens the evidence for that video. The code is in [`web/src/Timeline.jsx`](web/src/Timeline.jsx).
+
+The live demo is hosted on Render using the [`render.yaml`](render.yaml) blueprint, which builds the React app and runs the Node server together with its background worker.
+
+I also use the YouTube Data API v3 to read each video's description, length and paid promotion flag.
+
+## Tech stack
+
+The backend is Node.js 22 or newer with Express, storing data in SQLite through Node's built-in `node:sqlite` module. The frontend is React 19 built with Vite, with the Bryntum Scheduler for the timeline. It integrates the PayPal REST APIs and Agent Toolkit, Google Gemini and the YouTube Data API v3, and is deployed on Render.
+
+## Running it locally
+
+You'll need Node.js 22.13 or newer, along with a few keys:
+
+- a PayPal sandbox app from [developer.paypal.com](https://developer.paypal.com), found under Apps & Credentials with Sandbox selected, plus the email address of a sandbox personal account from Testing Tools, Sandbox Accounts, which receives the payouts and invoices
+- a YouTube Data API v3 key from [console.cloud.google.com](https://console.cloud.google.com)
+- a Gemini API key from [aistudio.google.com](https://aistudio.google.com)
 
 ```bash
+git clone https://github.com/RishTheFish21/cleared.git
+cd cleared
 npm install
-npm run dev        # http://localhost:3000, auto-restarts on changes
+cp .env.example .env
 ```
 
-The background worker starts with the server. It re-checks posts the creator was asked to fix and polls PayPal until each payout settles.
+In `.env`, fill in `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_TEST_RECEIVER` (the sandbox personal email), `YOUTUBE_API_KEY` and `GEMINI_API_KEY`. If you also set `DEMO_MODE=true`, the demo campaign is created automatically and the Reset demo button appears.
 
-### How a deliverable moves
-
-```
-submitted → verifying ─┬─ PASS ─────────▶ verified → paying → paid
-                       ├─ FIX_NEEDED ───▶ fix_needed ─(auto re-check if fixable in place)─▶ verifying
-                       └─ HUMAN_REVIEW ─▶ human_review ─(approve)─▶ verified → …
+```bash
+npm run dev
 ```
 
-- **AI judges, code decides the money.** Gemini turns the brief into a checklist and watches the video. Plain code (`server/policy.js`) decides whether to pay, using the fee agreed in the deal, a per-payout cap and the campaign's funded balance.
-- **Video analysis is cached per video.** A YouTube video's content can't change after upload, so a re-check after the creator fixes their description or ticks the paid-promotion box only re-reads metadata and takes well under a second.
+Then open http://localhost:5173. The API runs on port 3000, and the background worker starts along with it. If you'd rather run it the way it runs in production, build the frontend and start the server, which serves both the app and the API on http://localhost:3000:
 
-### API
+```bash
+npm run build
+npm start
+```
 
-| Method | Path | What it does |
-|---|---|---|
-| POST | `/api/campaigns` | Create a campaign; AI parses `brief_text` into a checklist |
-| GET | `/api/campaigns/:id` | Campaign with its deliverables |
-| POST | `/api/campaigns/:id/checklist` | Re-parse the brief |
-| POST | `/api/campaigns/:id/fund` | Record funds received (temporary, until Invoicing) |
-| POST | `/api/creators` | Add a creator with their PayPal email |
-| POST | `/api/campaigns/:id/deliverables` | Add a deliverable (creator, title, due date, fee) |
-| GET | `/api/deliverables/:id` | Status, latest check with evidence, payout, history |
-| POST | `/api/deliverables/:id/submit` | Creator submits a YouTube link |
-| POST | `/api/deliverables/:id/recheck` | "I fixed it": re-check now |
-| POST | `/api/deliverables/:id/approve` / `reject` | Human review |
-| GET | `/api/events?since=&campaign_id=` | Activity feed |
+`npm run seed` puts the database back to the demo campaign, and `npm run spikes` runs three quick checks to confirm your keys work, which send a $1 sandbox payout, read a video's YouTube data and run a Gemini video analysis.
 
-## Deploy to Render
+## Deploying to Render
 
-The repo includes a [Render Blueprint](render.yaml).
+In Render, choose New and then Blueprint, connect your GitHub account and pick this repository. Render will ask for the secret values, which are `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_TEST_RECEIVER`, `YOUTUBE_API_KEY` and `GEMINI_API_KEY`, and once it deploys the server creates the demo campaign the first time it starts.
 
-1. In Render: **New → Blueprint**, connect GitHub and pick this repo.
-2. Fill in the secret values it asks for (`PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_TEST_RECEIVER`, `YOUTUBE_API_KEY`, `GEMINI_API_KEY`).
-3. Deploy. On first boot the server seeds the demo campaign.
+On the free plan the service goes to sleep after fifteen minutes without visitors and starts with a fresh database on every deploy. If you want a demo that keeps its data between deploys, use the Starter plan with the disk that's already described in `render.yaml`.
 
-`DEMO_MODE=true` keeps a public demo safe: payouts and invoices only go to PayPal sandbox accounts, writes are rate-limited, Gemini video checks are capped per day, and a **Reset demo** button restores the starting state.
+## Project layout
 
-The free plan sleeps after 15 minutes idle and loses data on restart. For judging, use the Starter plan with the disk shown in `render.yaml`.
+```
+server/
+  index.js              Express app, background worker, serves the built frontend
+  routes.js             REST API
+  pipeline.js           the submit, check, fix and pay lifecycle
+  verifier.js           YouTube data checks plus Gemini video analysis
+  policy.js             the payment decision, with no AI involved
+  payouts.js            PayPal Payouts
+  invoices.js           PayPal Invoicing
+  agent.js              Ask Cleared, built on PayPal's Agent Toolkit
+  brief.js              turns the brief into a checklist
+  fixer.js              writes fix messages for creators
+web/src/
+  CampaignPage.jsx      the dashboard
+  Timeline.jsx          the Bryntum Scheduler timeline
+  DeliverableDrawer.jsx evidence, verdict and payout for one video
+  CreatorPage.jsx       the creator's page
+  AskCleared.jsx        the assistant panel
+```

@@ -34,7 +34,7 @@ const schema = {
           value: {
             type: 'STRING',
             description:
-              'INCLUDE_TEXT: the exact text (e.g. "@pepperwick" or "EMBER15"). INCLUDE_LINK: the URL or domain. MIN_DURATION_SECONDS: a number. SHOW_PRODUCT: max seconds from start, or empty. Otherwise empty.',
+              'INCLUDE_TEXT: the exact text (e.g. "@northpaw" or "CHARGE15"). INCLUDE_LINK: the URL or domain. MIN_DURATION_SECONDS: a number. SHOW_PRODUCT: max seconds from start, or empty. Otherwise empty.',
           },
           quote_from_brief: { type: 'STRING', description: 'The words in the brief this came from' },
         },
@@ -55,7 +55,7 @@ Rules:
 - Only include requirements actually stated in the brief, mapped to the closest kind.
 - Use CUSTOM_VIDEO only for on-camera requirements that fit no other kind.
 - Never invent requirements. Put anything about money, tone, dates or that cannot be verified from the video or its description into "ignored".
-- Keep descriptions short and concrete, e.g. "Show Ember Drop within the first 10 seconds".`;
+- Keep descriptions short and concrete, e.g. "Show Charge within the first 10 seconds".`;
 
 /** Returns { brand, product, summary, requirements: [{id, kind, source, description, value, ...}], ignored } */
 export async function parseBrief({ brand, briefText }) {

@@ -1,12 +1,12 @@
 // Test 3: can Gemini watch a public YouTube video and return a structured,
 // timestamped sponsorship-disclosure verdict?
 // Usage: npm run spike:gemini [-- <url> ...]   (defaults to the two test videos in .env)
-// Set BRAND_NAME in .env to change the brand it looks for (default "Pepperwick").
+// Set BRAND_NAME in .env to change the brand it looks for (default "Northpaw").
 import { requireEnv, youtubeId, saveOutput, pass, fail, sleep } from './lib.mjs';
 
 const { GEMINI_API_KEY } = requireEnv('GEMINI_API_KEY');
 const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
-const BRAND = process.env.BRAND_NAME || 'Pepperwick';
+const BRAND = process.env.BRAND_NAME || 'Northpaw';
 
 const args = process.argv.slice(2);
 const videos = args.length

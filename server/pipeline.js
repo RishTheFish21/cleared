@@ -6,6 +6,7 @@ import { verifyPost } from './verifier.js';
 import { decidePayout } from './policy.js';
 import { draftFixMessage } from './fixer.js';
 import { payDeliverable, pollPendingPayouts } from './payouts.js';
+import { pollOpenInvoices } from './invoices.js';
 import { config } from './config.js';
 import { one, insert, update, newId, now, logEvent, all } from './db.js';
 
@@ -115,8 +116,20 @@ async function onPass(d, campaign) {
   return releasePayment(d.id);
 }
 
-/** Apply the payment policy and pay if it allows. */
+const releasing = new Set();
+
+/** Apply the payment policy and pay if it allows. One release per deliverable at a time. */
 async function releasePayment(deliverableId) {
+  if (releasing.has(deliverableId)) return;
+  releasing.add(deliverableId);
+  try {
+    await releasePaymentNow(deliverableId);
+  } finally {
+    releasing.delete(deliverableId);
+  }
+}
+
+async function releasePaymentNow(deliverableId) {
   const { d, campaign } = load(deliverableId);
   const committed = one(
     `SELECT COALESCE(SUM(p.amount_cents), 0) AS c FROM payouts p
@@ -142,6 +155,16 @@ async function releasePayment(deliverableId) {
   }
 }
 
+/** After a brand pays, release every verified deliverable that was waiting on funds. */
+export async function releaseHeld(campaignId) {
+  const held = all(
+    `SELECT d.id FROM deliverables d LEFT JOIN payouts p ON p.deliverable_id = d.id
+      WHERE d.campaign_id = ? AND d.status = 'verified' AND p.id IS NULL ORDER BY d.verified_at`,
+    campaignId,
+  );
+  for (const { id } of held) await releasePayment(id);
+}
+
 /** A person approves a deliverable the checks couldn't settle. */
 export async function approve(deliverableId, note = '') {
   const { d } = load(deliverableId);
@@ -162,6 +185,7 @@ const inSeconds = (s) => new Date(Date.now() + s * 1000).toISOString();
 /** Background loop: due re-checks and in-flight payouts. */
 export function startWorker(intervalMs = 3000) {
   let busy = false;
+  let ticks = 0;
   const tick = async () => {
     if (busy) return;
     busy = true;
@@ -176,6 +200,8 @@ export function startWorker(intervalMs = 3000) {
       );
       for (const { id } of due) kick(id);
       await pollPendingPayouts();
+      // Invoices change slowly; check them every other tick.
+      if (++ticks % 2 === 0) for (const campaignId of await pollOpenInvoices()) await releaseHeld(campaignId);
     } catch (err) {
       console.error('worker:', err.message);
     } finally {

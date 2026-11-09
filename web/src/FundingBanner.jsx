@@ -50,14 +50,11 @@ export default function FundingBanner({ campaign, onChange }) {
 
   return (
     <div className="card funding">
-      <div className="funding-icon" aria-hidden>
-        {open ? '⏳' : '$'}
-      </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         {open ? (
           <>
             <div className="funding-title">
-              PayPal invoice #{open.invoice_number} for {money(open.amount_cents)} sent to {campaign.brand}
+              PayPal invoice #{open.invoice_number} sent to {campaign.brand} for <span className="num">{money(open.amount_cents)}</span>
             </div>
             <div className="muted small">
               Waiting for payment. Checks keep running; payouts start the moment the invoice is paid.

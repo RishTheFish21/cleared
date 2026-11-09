@@ -74,8 +74,8 @@ export default function DeliverableDrawer({ id, onClose }) {
             )}
 
             {['submitted', 'verifying'].includes(d.status) && (
-              <div className="verdict" style={{ background: 'var(--violet-bg)', color: 'var(--violet)' }}>
-                <span className="spinner" style={{ width: 16, height: 16 }} />
+              <div className="verdict verdict-busy">
+                <span className="spinner" style={{ width: 14, height: 14 }} />
                 <div>
                   <div className="verdict-title">Checking the video against the brief</div>
                   <div className="verdict-sub">Gemini is watching the video while code checks the YouTube data.</div>
@@ -159,19 +159,20 @@ export default function DeliverableDrawer({ id, onClose }) {
 function PaidBox({ d }) {
   const secs = d.verified_at && d.paid_at ? Math.round((parseTime(d.paid_at) - parseTime(d.verified_at)) / 1000) : null;
   return (
-    <div className="payout-box" style={{ marginBottom: 14 }}>
-      <div>
-        <div className="small" style={{ color: '#065f46', fontWeight: 600 }}>
-          Paid via PayPal Payouts{secs != null ? ` · ${secs}s after verification` : ''}
-        </div>
+    <div className="payout-box">
+      <div style={{ minWidth: 0 }}>
         <div className="payout-amount">{money(d.payout.amount_cents)}</div>
+        <div className="small" style={{ marginBottom: 8 }}>
+          Sent with PayPal Payouts{secs != null ? `, ${secs}s after the post cleared` : ''}
+        </div>
+        <dl className="kv" style={{ gridTemplateColumns: 'auto 1fr', fontSize: 12 }}>
+          <dt>Batch</dt>
+          <dd className="mono">{d.payout.batch_id}</dd>
+          <dt>To</dt>
+          <dd>{d.payout.receiver}</dd>
+        </dl>
       </div>
-      <dl className="kv" style={{ gridTemplateColumns: 'auto 1fr', fontSize: 12 }}>
-        <dt>Batch</dt>
-        <dd className="mono">{d.payout.batch_id}</dd>
-        <dt>To</dt>
-        <dd>{d.payout.receiver}</dd>
-      </dl>
+      <span className="stamp stamp-big">Paid</span>
     </div>
   );
 }

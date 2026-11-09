@@ -85,7 +85,7 @@ export default function NewCampaign() {
         </div>
         <div className="card card-body">
           <h2 style={{ marginBottom: 8 }}>What happens next</h2>
-          <ol className="muted" style={{ paddingLeft: 18, margin: 0, lineHeight: 1.7 }}>
+          <ol className="how">
             <li>AI pulls every checkable requirement out of the brief. It skips anything it can’t verify, like tone or payment terms.</li>
             <li>Code adds the FTC disclosure checks to every campaign, whatever the brief says.</li>
             <li>You add creators and the post each one owes, with the agreed fee.</li>

@@ -39,13 +39,12 @@ export default function CreatorPage() {
         </div>
         <div className="steps">
           {[
-            ['funded', funded ? 'Brand paid' : 'Awaiting brand'],
+            ['funded', funded ? 'Funded' : 'Unfunded'],
             ['posted', 'Posted'],
             ['checked', 'Checked'],
             ['paid', 'Paid'],
-          ].map(([k, label]) => (
-            <div key={k} className={`step ${stepState[k]}`}>
-              <div className="bar" />
+          ].map(([k, label], i) => (
+            <div key={k} className={`step ${stepState[k]}`} data-n={i + 1}>
               {label}
             </div>
           ))}
@@ -56,14 +55,14 @@ export default function CreatorPage() {
         {s === 'paid' && <Paid d={d} />}
         {['verified', 'paying'].includes(s) && (
           <div className="card hero" style={{ textAlign: 'center' }}>
-            <div className="spinner" style={{ width: 22, height: 22, color: 'var(--green)', margin: '0 auto 10px' }} />
+            <div className="spinner" style={{ width: 20, height: 20, color: 'var(--green)', margin: '0 auto 12px' }} />
             <h2>Your video passed. Sending your money now…</h2>
             <p className="muted small">PayPal usually confirms in under 30 seconds.</p>
           </div>
         )}
         {['submitted', 'verifying'].includes(s) && (
           <div className="card hero" style={{ textAlign: 'center' }}>
-            <div className="spinner" style={{ width: 22, height: 22, color: 'var(--violet)', margin: '0 auto 10px' }} />
+            <div className="spinner" style={{ width: 20, height: 20, margin: '0 auto 12px' }} />
             <h2>Checking your video…</h2>
             <p className="muted small">We’re watching it against the brief. This takes about 10–20 seconds.</p>
           </div>
@@ -99,7 +98,7 @@ function Shell({ children }) {
     <div className="creator-shell">
       <div className="creator-top">
         <Logo to="#" />
-        <span className="sandbox-tag">Sandbox</span>
+        <span className="sandbox-tag">sandbox</span>
       </div>
       <main className="creator-main">{children}</main>
     </div>
@@ -195,8 +194,8 @@ function Paid({ d }) {
   const secs = d.verified_at && d.paid_at ? Math.round((parseTime(d.paid_at) - parseTime(d.verified_at)) / 1000) : null;
   return (
     <div className="card paid-banner">
-      <div className="paid-check">✓</div>
-      <h2 style={{ fontSize: 20 }}>You’ve been paid {money(d.payout?.amount_cents ?? d.fee_cents)}</h2>
+      <span className="stamp stamp-big">Paid</span>
+      <h2 style={{ fontSize: 20 }}>You’ve been paid <span className="num">{money(d.payout?.amount_cents ?? d.fee_cents)}</span></h2>
       <p className="muted" style={{ margin: '6px 0 0' }}>
         Sent to your PayPal{secs != null ? `, ${secs} seconds after your video passed` : ''}.
       </p>

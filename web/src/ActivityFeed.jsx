@@ -1,29 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
-import { api, timeAgo } from './api.js';
+import { api, timeAgo, parseTime } from './api.js';
 
-const LOOK = {
-  'post.submitted': ['↑', 'var(--blue-bg)', 'var(--blue)'],
-  'check.started': ['◎', 'var(--violet-bg)', 'var(--violet)'],
-  'check.requested': ['↻', 'var(--violet-bg)', 'var(--violet)'],
-  'check.finished': ['◉', 'var(--violet-bg)', 'var(--violet)'],
-  'check.error': ['!', 'var(--red-bg)', 'var(--red)'],
-  'fix.requested': ['✎', 'var(--amber-bg)', 'var(--amber)'],
-  'review.needed': ['?', 'var(--amber-bg)', 'var(--amber)'],
-  'review.approved': ['✓', 'var(--green-bg)', 'var(--green)'],
-  'review.rejected': ['✕', 'var(--amber-bg)', 'var(--amber)'],
-  'post.verified': ['✓', 'var(--green-bg)', 'var(--green)'],
-  'policy.pay': ['§', 'var(--green-bg)', 'var(--green)'],
-  'policy.hold': ['§', 'var(--amber-bg)', 'var(--amber)'],
-  'policy.review': ['§', 'var(--amber-bg)', 'var(--amber)'],
-  'payout.sending': ['$', 'var(--green-bg)', 'var(--green)'],
-  'payout.created': ['$', 'var(--green-bg)', 'var(--green)'],
-  'payout.paid': ['$', 'var(--green)', '#fff'],
-  'payout.error': ['!', 'var(--red-bg)', 'var(--red)'],
-  'payout.failed': ['!', 'var(--red-bg)', 'var(--red)'],
-  'funds.received': ['+', 'var(--green)', '#fff'],
-  'invoice.sent': ['✉', 'var(--blue-bg)', 'var(--blue)'],
-  'invoice.error': ['!', 'var(--red-bg)', 'var(--red)'],
+// Edge colour on the log line: green = money or a pass, ochre = held, brick = error.
+const TONE = {
+  'check.error': 'brick',
+  'fix.requested': 'ochre',
+  'review.needed': 'ochre',
+  'review.rejected': 'ochre',
+  'policy.hold': 'ochre',
+  'policy.review': 'ochre',
+  'review.approved': 'green',
+  'post.verified': 'green',
+  'payout.paid': 'green',
+  'funds.received': 'green',
+  'payout.error': 'brick',
+  'payout.failed': 'brick',
+  'invoice.error': 'brick',
 };
+
+const clock = (iso) => parseTime(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
 /** Live log of everything the agent did, newest first. */
 export default function ActivityFeed({ campaignId, creatorNames = {}, onSelect }) {
@@ -64,23 +59,25 @@ export default function ActivityFeed({ campaignId, creatorNames = {}, onSelect }
 
   return (
     <ul className="feed">
-      {events.map((e) => {
-        const [icon, bg, fg] = LOOK[e.type] ?? ['·', 'var(--gray-bg)', 'var(--muted)'];
-        return (
-          <li key={e.id} className={e.fresh ? 'fresh' : ''} onClick={() => e.deliverable_id && onSelect?.(e.deliverable_id)} style={{ cursor: e.deliverable_id ? 'pointer' : 'default' }}>
-            <span className="ev-dot" style={{ background: bg, color: fg }}>
-              {icon}
-            </span>
-            <div>
-              <div className="ev-msg">{e.message}</div>
-              <div className="ev-meta">
-                {creatorNames[e.deliverable_id] ? `${creatorNames[e.deliverable_id]} · ` : ''}
-                {timeAgo(e.created_at)}
-              </div>
+      {events.map((e) => (
+        <li
+          key={e.id}
+          className={e.fresh ? 'fresh' : ''}
+          data-tone={TONE[e.type]}
+          role={e.deliverable_id ? 'button' : undefined}
+          onClick={() => e.deliverable_id && onSelect?.(e.deliverable_id)}
+          style={{ cursor: e.deliverable_id ? 'pointer' : 'default' }}
+        >
+          <span className="ev-time">{clock(e.created_at)}</span>
+          <div>
+            <div className="ev-msg">{e.message}</div>
+            <div className="ev-meta">
+              {creatorNames[e.deliverable_id] ? `${creatorNames[e.deliverable_id]} · ` : ''}
+              {timeAgo(e.created_at)}
             </div>
-          </li>
-        );
-      })}
+          </div>
+        </li>
+      ))}
     </ul>
   );
 }

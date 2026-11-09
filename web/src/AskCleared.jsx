@@ -36,6 +36,17 @@ export default function AskCleared() {
   useEffect(() => {
     if (open) inputRef.current?.focus();
   }, [open]);
+  // "/" opens the panel from anywhere except a text field.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === '/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) {
+        e.preventDefault();
+        setOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const send = async (text) => {
     const q = text.trim();
@@ -57,7 +68,7 @@ export default function AskCleared() {
   if (!open) {
     return (
       <button className="ask-fab" onClick={() => setOpen(true)}>
-        <span aria-hidden>✦</span> Ask Cleared
+        Ask Cleared <kbd>/</kbd>
       </button>
     );
   }
@@ -66,8 +77,8 @@ export default function AskCleared() {
     <section className="ask-panel" aria-label="Ask Cleared">
       <header className="ask-head">
         <div>
-          <div style={{ fontWeight: 700 }}>Ask Cleared</div>
-          <div className="muted small">Gemini + PayPal Agent Toolkit · can’t move money</div>
+          <div style={{ fontWeight: 600 }}>Ask Cleared</div>
+          <div className="muted small">Reads PayPal and Cleared. Can’t move money.</div>
         </div>
         <button className="icon-btn" onClick={() => setOpen(false)} aria-label="Close assistant">
           ×
@@ -77,8 +88,8 @@ export default function AskCleared() {
       <div className="ask-body">
         {!msgs.length && (
           <div className="ask-empty">
-            <p className="muted small" style={{ margin: '0 0 10px' }}>
-              Ask about campaigns, creators, invoices and payouts. Answers use live PayPal data.
+            <p className="muted small" style={{ margin: '12px 0 4px' }}>
+              Ask about campaigns, creators, invoices and payouts. Answers use live PayPal data. Try:
             </p>
             {SUGGESTIONS.map((s) => (
               <button key={s} className="ask-suggest" onClick={() => send(s)}>
@@ -89,20 +100,24 @@ export default function AskCleared() {
         )}
         {msgs.map((m, i) => (
           <div key={i} className={`ask-msg ask-${m.role}${m.error ? ' ask-error' : ''}`}>
-            {m.toolCalls?.length > 0 && (
-              <div className="ask-tools">
-                {m.toolCalls.map((c, j) => (
-                  <span key={j} className={`ask-tool ${c.source === 'Cleared' ? 'is-cleared' : 'is-paypal'}`} title={JSON.stringify(c.args)}>
-                    {c.source === 'Cleared' ? 'Cleared' : 'PayPal'} · {TOOL_LABEL[c.tool] ?? c.tool}
-                  </span>
-                ))}
-              </div>
-            )}
-            <div className="ask-text">{m.content}</div>
+            <span className="ask-who">{m.role === 'user' ? 'you' : 'cleared'}</span>
+            <div style={{ minWidth: 0 }}>
+              <div className="ask-text">{m.content}</div>
+              {m.toolCalls?.length > 0 && (
+                <div className="ask-tools">
+                  {m.toolCalls.map((c, j) => (
+                    <span key={j} className="ask-tool" title={JSON.stringify(c.args)}>
+                      <b>{c.source === 'Cleared' ? 'Cleared' : 'PayPal'}</b> {TOOL_LABEL[c.tool] ?? c.tool}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         ))}
         {busy && (
           <div className="ask-msg ask-assistant">
+            <span className="ask-who">cleared</span>
             <div className="ask-text muted">
               <span className="spinner" style={{ display: 'inline-block', marginRight: 8, verticalAlign: -1 }} />
               Looking that up…

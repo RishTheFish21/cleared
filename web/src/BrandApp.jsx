@@ -28,7 +28,7 @@ export default function BrandApp() {
         <Logo />
         <span className="sandbox-tag">PayPal sandbox</span>
         <div className="spacer" />
-        <span className="org">Northwind Creator Co. · agency workspace</span>
+        <span className="org">Northwind Creator Co.</span>
         {health?.demoMode && (
           <button className="btn btn-sm" onClick={reset} disabled={resetting} title="Put the demo back to its starting state">
             {resetting ? 'Resetting…' : 'Reset demo'}
@@ -45,9 +45,9 @@ export default function BrandApp() {
           </div>
           {campaigns?.map((c) => (
             <NavLink key={c.id} to={`/campaigns/${c.id}`} className={({ isActive }) => `camp-link${isActive ? ' active' : ''}`}>
-              <div style={{ fontWeight: 600 }}>{c.name}</div>
+              <div style={{ fontWeight: 500 }}>{c.name}</div>
               <div className="camp-brand">
-                {c.brand} · {c.paid_count}/{c.deliverable_count} paid
+                {c.brand} · <span className="mono">{c.paid_count}/{c.deliverable_count}</span> paid
               </div>
             </NavLink>
           ))}

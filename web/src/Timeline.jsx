@@ -31,7 +31,8 @@ export default function Timeline({ deliverables, onSelect }) {
         name: d.title,
         startDate: new Date(due.getTime() - 2 * DAY), // posting window
         endDate: new Date(due.getTime() + DAY),
-        eventColor: STATUS[d.status]?.bryntum ?? 'gray',
+        eventColor: STATUS[d.status]?.color ?? '#a29e93',
+        eventStyle: d.status === 'paid' ? 'filled' : undefined, // the one solid mark, like the PAID stamp
         status: d.status,
         fee: d.fee_cents,
       };
@@ -56,7 +57,7 @@ export default function Timeline({ deliverables, onSelect }) {
         tickSize={34}
         rowHeight={58}
         barMargin={9}
-        eventStyle="tonal"
+        eventStyle="hollow"
         readOnly
         zoomOnMouseWheel={false}
         eventEditFeature={false}
@@ -73,8 +74,8 @@ export default function Timeline({ deliverables, onSelect }) {
             width: 190,
             htmlEncode: false,
             renderer: ({ record }) =>
-              `<div style="line-height:1.25"><div style="font-weight:600">${StringHelper.encodeHtml(record.name)}</div>${
-                record.handle ? `<div style="font-size:12px;color:#6b7280">${StringHelper.encodeHtml(record.handle)}</div>` : ''
+              `<div style="line-height:1.25"><div style="font-weight:500">${StringHelper.encodeHtml(record.name)}</div>${
+                record.handle ? `<div style="font-size:12px;color:#76736a">${StringHelper.encodeHtml(record.handle)}</div>` : ''
               }</div>`,
           },
         ]}

@@ -20,7 +20,7 @@ export default function ChecklistCard({ checklist, brief }) {
     <div className="card">
       <div className="card-head">
         <div>
-          <h2>Checklist from the brief</h2>
+          <h2>Checklist</h2>
           <div className="muted small">Every post is checked against these before money moves.</div>
         </div>
         <button className="btn btn-sm btn-ghost" onClick={() => setShowBrief((s) => !s)}>
@@ -29,7 +29,7 @@ export default function ChecklistCard({ checklist, brief }) {
       </div>
       <div className="card-body" style={{ paddingTop: 6, paddingBottom: 6 }}>
         {showBrief && <div className="message-box" style={{ margin: '10px 0' }}>{brief}</div>}
-        <ul className="req-list">
+        <ul className="req-list numbered">
           {checklist.requirements.map((r) => (
             <li key={r.id} className="req">
               <div style={{ flex: 1 }}>
@@ -39,7 +39,7 @@ export default function ChecklistCard({ checklist, brief }) {
                   {r.quote_from_brief ? ` · “${r.quote_from_brief}”` : ''}
                 </div>
               </div>
-              <div>{r.added_by === 'policy' ? <span className="tag tag-ftc">FTC</span> : <span className="tag tag-ai">From brief</span>}</div>
+              <div>{r.added_by === 'policy' ? <span className="tag tag-ftc">FTC rule</span> : <span className="tag">brief</span>}</div>
             </li>
           ))}
         </ul>

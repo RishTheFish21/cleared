@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { money, usePolling, fmtDay } from './api.js';
-import { StatusPill, Stat, Empty } from './ui.jsx';
+import { StatusPill, Empty } from './ui.jsx';
 const Timeline = lazy(() => import('./Timeline.jsx'));
 import ActivityFeed from './ActivityFeed.jsx';
 import DeliverableDrawer from './DeliverableDrawer.jsx';
@@ -33,11 +33,9 @@ export default function CampaignPage() {
     <div className="page">
       <div className="page-head">
         <div>
+          <div className="brand-line">{c.brand}</div>
           <h1>{c.name}</h1>
-          <div className="sub">
-            {c.brand}
-            {c.checklist?.summary ? ` · ${c.checklist.summary}` : ''}
-          </div>
+          {c.checklist?.summary && <div className="sub">{c.checklist.summary}</div>}
         </div>
         <button className="btn btn-primary" onClick={() => setAdding(true)}>
           + Add deliverable
@@ -46,20 +44,25 @@ export default function CampaignPage() {
 
       <FundingBanner campaign={c} onChange={refresh} />
 
-      <div className="stats">
-        <Stat
-          label="Funded by brand"
-          value={money(c.funded_cents)}
-          sub={paidInvoice ? `PayPal invoice #${paidInvoice.invoice_number} paid` : `of ${money(c.budget_cents)} budget`}
+      <div className="ledger" aria-label="Campaign money">
+        <LedgerCell label="Brand paid in" value={money(c.funded_cents)} sub={paidInvoice ? `PayPal invoice #${paidInvoice.invoice_number}` : `of ${money(c.budget_cents)} budget`} />
+        <span className="ledger-op" aria-hidden>−</span>
+        <LedgerCell label="Paid to creators" value={money(c.paid_cents)} sub={`${paidCount} of ${ds.length} deliverables`} />
+        <span className="ledger-op" aria-hidden>=</span>
+        <LedgerCell label="Held for creators" value={money(c.funded_cents - c.paid_cents)} sub="Only paid out once a post clears" />
+        <LedgerCell
+          split
+          label="Still owed"
+          value={money(committed - c.paid_cents)}
+          warn={committed > c.funded_cents}
+          sub={committed > c.funded_cents ? `${money(committed - c.funded_cents)} more than funded` : 'Covered by funds received'}
         />
-        <Stat label="Paid to creators" value={money(c.paid_cents)} sub={`${paidCount} of ${ds.length} deliverables`} />
-        <Stat label="Committed fees" value={money(committed)} sub={committed > c.funded_cents ? 'More than funded so far' : 'Covered by funds received'} />
-        <Stat label="Needs attention" value={attention} sub={attention ? 'Fixes or reviews pending' : 'All clear'} />
+        <LedgerCell split label="Needs attention" value={attention} warn={attention > 0} sub={attention ? 'Fixes or reviews pending' : 'All clear'} />
       </div>
 
-      <div className="card timeline-card" style={{ marginBottom: 16 }}>
+      <div className="card timeline-card">
         <div className="card-head">
-          <h2>Deliverables timeline</h2>
+          <h2>Timeline</h2>
           <div className="legend">
             {['due', 'verifying', 'fix_needed', 'human_review', 'paid'].map((s) => (
               <StatusPill key={s} status={s === 'verifying' ? 'checking' : s} />
@@ -82,7 +85,7 @@ export default function CampaignPage() {
                     <th>Creator</th>
                     <th>Deliverable</th>
                     <th>Due</th>
-                    <th>Fee</th>
+                    <th className="num">Fee</th>
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -94,8 +97,8 @@ export default function CampaignPage() {
                         {d.creator_handle && <div className="muted small">{d.creator_handle}</div>}
                       </td>
                       <td>{d.title}</td>
-                      <td className="muted">{fmtDay(d.due_date)}</td>
-                      <td className="mono">{money(d.fee_cents)}</td>
+                      <td className="mono muted">{fmtDay(d.due_date)}</td>
+                      <td className="num">{money(d.fee_cents)}</td>
                       <td>
                         <StatusPill status={d.status} />
                       </td>
@@ -113,9 +116,7 @@ export default function CampaignPage() {
         <div className="card">
           <div className="card-head">
             <h2>Agent activity</h2>
-            <span className="pill pill-green">
-              <span className="dot" /> Live
-            </span>
+            <span className="live">live</span>
           </div>
           <ActivityFeed campaignId={c.id} creatorNames={creatorNames} onSelect={select} />
         </div>
@@ -123,6 +124,16 @@ export default function CampaignPage() {
 
       {selected && <DeliverableDrawer id={selected} onClose={() => select(null)} />}
       {adding && <AddDeliverable campaign={c} onClose={() => setAdding(false)} onAdded={refresh} />}
+    </div>
+  );
+}
+
+function LedgerCell({ label, value, sub, warn, split }) {
+  return (
+    <div className={`ledger-cell${split ? ' split' : ''}`}>
+      <div className="ledger-label">{label}</div>
+      <div className={`ledger-value${warn ? ' warn' : ''}`}>{value}</div>
+      {sub && <div className="ledger-sub">{sub}</div>}
     </div>
   );
 }

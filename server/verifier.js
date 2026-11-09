@@ -6,6 +6,7 @@ import { fetchVideo, youtubeId } from './youtube.js';
 import { generateJson, youtubePart } from './gemini.js';
 import { config } from './config.js';
 import { one, run } from './db.js';
+import { videoBudgetLeft } from './guards.js';
 
 // The lookbehind skips "not sponsored by", which creators often write.
 const DISCLOSURE_RE =
@@ -140,6 +141,7 @@ async function analyzeVideo(video, checklist, items) {
   const cached = one('SELECT * FROM video_analyses WHERE video_id = ? AND checklist_hash = ?', video.id, hash);
   if (cached) return { ...cached.result, cached: true, ms: cached.ms, model: cached.model };
 
+  if (videoBudgetLeft() <= 0) throw new Error('Daily limit for video checks reached. Try again tomorrow.');
   const model = config.gemini.videoModel;
   const { data, ms } = await generateJson({ model, schema: videoSchema, parts: [youtubePart(video.url), { text: videoPrompt(checklist, items) }] });
   run(

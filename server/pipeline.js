@@ -130,8 +130,12 @@ async function releasePayment(deliverableId) {
   if (decision.action === 'pay') {
     try {
       await payDeliverable(d.id, decision.amountCents);
-    } catch {
-      /* already logged as payout.error */
+    } catch (err) {
+      // PayPal errors are logged inside payDeliverable; anything thrown before the call is logged here.
+      if (one('SELECT status FROM deliverables WHERE id = ?', d.id).status !== 'payout_failed') {
+        update('deliverables', d.id, { status: 'payout_failed' });
+        ev(d, 'payout.error', err.message);
+      }
     }
   } else if (decision.action === 'review') {
     update('deliverables', d.id, { status: 'human_review' });

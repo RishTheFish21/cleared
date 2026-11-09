@@ -2,6 +2,7 @@
 // We poll instead of waiting on webhooks because sandbox webhooks can lag by hours.
 import { createPayout, getPayoutBatch } from './paypal.js';
 import { config } from './config.js';
+import { checkReceiver } from './guards.js';
 import { one, all, insert, update, newId, now, logEvent } from './db.js';
 
 const PENDING = new Set(['CREATED', 'SUBMITTED', 'PENDING', 'ONHOLD', 'PROCESSING']);
@@ -19,6 +20,7 @@ export async function payDeliverable(deliverableId, amountCents) {
     deliverableId,
   );
   if (!d) throw new Error(`No deliverable ${deliverableId}`);
+  checkReceiver(d.paypal_email);
   if (amountCents > config.limits.maxPayoutCents) throw new Error(`Amount ${fmt(amountCents)} is over the per-deliverable cap`);
 
   let payout = one('SELECT * FROM payouts WHERE deliverable_id = ?', deliverableId);

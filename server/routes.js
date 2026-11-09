@@ -3,6 +3,9 @@ import { parseBrief } from './brief.js';
 import { submitPost, recheckNow, approve, reject } from './pipeline.js';
 import { youtubeId } from './youtube.js';
 import { one, all, insert, update, newId } from './db.js';
+import { checkReceiver } from './guards.js';
+import { seedDemo } from './seed.js';
+import { config } from './config.js';
 
 export const api = Router();
 
@@ -110,6 +113,7 @@ api.post(
     const name = str(req.body, 'name', { max: 80 });
     const email = str(req.body, 'paypal_email', { max: 200 });
     if (!EMAIL.test(email)) throw bad('paypal_email must be an email address');
+    checkReceiver(email);
     return insert('creators', { id: newId('cr'), name, handle: str(req.body, 'handle', { max: 80, optional: true }), paypal_email: email });
   }),
 );
@@ -169,6 +173,17 @@ api.post(
 api.post('/deliverables/:id/recheck', wrap((req) => (recheckNow(req.params.id), { ok: true })));
 api.post('/deliverables/:id/approve', wrap(async (req) => (await approve(req.params.id, str(req.body, 'note', { optional: true, max: 500 }) ?? ''), { ok: true })));
 api.post('/deliverables/:id/reject', wrap((req) => (reject(req.params.id, str(req.body, 'message', { max: 1000 })), { ok: true })));
+
+// ---------- demo ----------
+
+api.post(
+  '/demo/reset',
+  wrap(() => {
+    if (!config.demo.enabled) throw new HttpError(404, 'Not available');
+    const c = seedDemo({ receiver: config.demo.receiver });
+    return { campaignId: c.id };
+  }),
+);
 
 // ---------- activity feed ----------
 

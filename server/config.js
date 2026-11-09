@@ -27,6 +27,13 @@ export const config = {
     humanApprovalAboveCents: Number(process.env.HUMAN_APPROVAL_ABOVE_CENTS || 100_000),
   },
 
+  // Public demo safety: sandbox-only receivers, a reset button, a daily cap on video analyses.
+  demo: {
+    enabled: process.env.DEMO_MODE === 'true',
+    receiver: process.env.PAYPAL_TEST_RECEIVER,
+    dailyVideoAnalyses: Number(process.env.DAILY_VIDEO_ANALYSES || 150),
+  },
+
   // Seconds between automatic re-checks of a FIX_NEEDED deliverable.
   recheckSeconds: Number(process.env.RECHECK_SECONDS || 120),
 };

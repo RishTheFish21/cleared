@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from './api.js';
 
 const inDays = (n) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);
@@ -8,6 +8,13 @@ export default function AddDeliverable({ campaign, onClose, onAdded }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+
+  // In the public demo, pre-fill the sandbox account so the payout can actually land.
+  useEffect(() => {
+    api('/health')
+      .then((h) => h.demoReceiver && setF((cur) => (cur.email ? cur : { ...cur, email: h.demoReceiver })))
+      .catch(() => {});
+  }, []);
 
   const submit = async (e) => {
     e.preventDefault();

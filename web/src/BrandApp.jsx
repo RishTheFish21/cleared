@@ -1,9 +1,25 @@
-import { NavLink, Outlet, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom';
 import { Logo } from './ui.jsx';
-import { usePolling } from './api.js';
+import { api, usePolling } from './api.js';
 
 export default function BrandApp() {
-  const { data: campaigns } = usePolling('/campaigns', 5000);
+  const { data: campaigns, refresh } = usePolling('/campaigns', 5000);
+  const { data: health } = usePolling('/health', 60000);
+  const [resetting, setResetting] = useState(false);
+  const nav = useNavigate();
+
+  const reset = async () => {
+    if (!window.confirm('Reset the demo? This clears all campaigns and payouts in this sandbox demo.')) return;
+    setResetting(true);
+    try {
+      const { campaignId } = await api('/demo/reset', { method: 'POST' });
+      await refresh();
+      nav(`/campaigns/${campaignId}`);
+    } finally {
+      setResetting(false);
+    }
+  };
 
   return (
     <div className="shell">
@@ -12,6 +28,11 @@ export default function BrandApp() {
         <span className="sandbox-tag">PayPal sandbox</span>
         <div className="spacer" />
         <span className="org">Northwind Creator Co. · agency workspace</span>
+        {health?.demoMode && (
+          <button className="btn btn-sm" onClick={reset} disabled={resetting} title="Put the demo back to its starting state">
+            {resetting ? 'Resetting…' : 'Reset demo'}
+          </button>
+        )}
       </header>
       <div className="layout">
         <nav className="sidebar" aria-label="Campaigns">

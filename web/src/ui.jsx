@@ -7,7 +7,7 @@ export const STATUS = {
   submitted: { label: 'Queued', tone: 'blue', color: '#90a8ed' },
   verifying: { label: 'Checking', tone: 'blue', color: '#90a8ed' },
   fix_needed: { label: 'Fix needed', tone: 'red', color: '#ff7051' },
-  human_review: { label: 'Needs review', tone: 'yellow', color: '#ffc900' },
+  human_review: { label: 'Needs review', tone: 'yellow', color: '#f0dc9a' },
   verified: { label: 'Passed', tone: 'teal', color: '#23a094' },
   paying: { label: 'Paying', tone: 'teal', color: '#23a094' },
   paid: { label: 'Paid', tone: 'pink', color: '#ff90e8' },
